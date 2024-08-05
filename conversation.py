@@ -1,10 +1,12 @@
 import dotenv
 import os
 import glob
+import sys
 from anthropic import Anthropic
 import random
 import base64
 import datetime
+import argparse
 
 dotenv.load_dotenv()
 
@@ -24,20 +26,22 @@ class Claude:
         dt = datetime.datetime.now()
         self.logfile = os.path.join('log',dt.strftime('%Y-%m-%d-%H-%M-%S') + '.log')
 
-    def set_task(self, task, personality, imgfile = None):
+    def set_task(self, task, names, personalities, imgfile = None):
         self.task = task
-        self.system_prompt = "*You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
-        names = list(personality.keys())
-
-        self.system_prompt += f'{names}はアートコミュニケーションの会話をしています．'
-        for name in personality.keys():
-            self.system_prompt += f'{name}は{personality[name]}です．'
-        self.system_prompt += f'これから{names}の発言を生成してください．'
+        self.system_prompt = "* You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
+        
+        if self.task == "art_view_conv" or self.task == "art_conv":
+            self.system_prompt += f'{",".join(names)}, userはアートコミュニケーションの会話をしています．'
+            for name,personality in zip(names,personalities):
+                self.system_prompt += f'{name}は{personality}です．'            
+        else:
+            self.system_prompt += f'{",".join(names)}, userは通常の会話をしています．'
+        
+        self.system_prompt += f'これから{",".join(names)}の発言を生成してください．'
         self.system_prompt += f'名前は行頭に[]で表記してください．'
         self.system_prompt += f'それに続き発言者の感情を(1)喜び(2)疑問(3)興味(4)驚き から選んで答えてください．'
         self.system_prompt += f'各人物の発言はできるだけ200字以内にしてください．'
-        self.system_prompt += f'文章の終わりは必ず句読点で終わるようにしてください'
-        self.system_prompt += f'発言の順番はランダムにしてください．'
+        self.system_prompt += f'文章の終わりは必ず句読点で終わるようにしてください．'
 
         # ART VIEW CONVタスクの場合は画像を読み込んで，messagesの先頭に追加する
         if self.task == "art_view_conv":
@@ -50,8 +54,6 @@ class Claude:
                 print("input image must be jpeg (.jpeg .jpg) file. cannot load file")
                 return
             
-
-            
             with open(imgfile, "rb") as image_file:
                 try:
                     self.target_img = base64.b64encode(image_file.read())
@@ -59,12 +61,26 @@ class Claude:
                 except Exception as e:
                     print("cannot open file:", imgfile)
                     return
-            # print(self.target_img)
+        
+        # 通常会話の場合，それぞれのパーソナリティを設定する
+        if self.task == "normal_conv":
+            for name,personality in zip(names,personalities):
+                # personality directoryから文章を読み出し名前を変換する
+                fname = os.path.join('personality',f"p_{personality}.txt")
+                with open(fname,'r',encoding="utf-8") as f:
+                    try:
+                        l = f.read()
+                        l = l.replace('{name}',name)
+                        self.system_prompt += l
+                    except Exception as e:
+                        print("cannot open file:", imgfile)
+        
+        print(self.system_prompt) 
 
     def writelog(self,val):
         if val['role'] == 'user':
             with open(self.logfile,'a',encoding="utf-8") as f:
-                f.write(f'[user] {val['content']}')
+                f.write(f'\n[user] {val['content']}\n')
         else:
             with open(self.logfile,'a',encoding="utf-8") as f:
                 f.write(val['content'])
@@ -88,7 +104,8 @@ class Claude:
                                 }]
         else:
             self.messages.append({'role': 'user', 'content': user_message})
-            self.writelog({'role': 'user', 'content': user_message})
+        
+        self.writelog({'role': 'user', 'content': user_message + '\n'})
         
         response = self.client.messages.create(
             model = self.model,
@@ -104,18 +121,39 @@ class Claude:
 
 if __name__ == "__main__":
 
+    # コマンドライン引数を解釈する
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', "--task")     # タスク
+    parser.add_argument('-f', "--img_file")
+    args = parser.parse_args()
+    # print(args.task, args.img_file)
+
+    if args.task is None:
+        print("specify task by option -t [art_conv|art_view_conv|normal_conv]")
+        sys.exit(0)
+
+    # setup claude
     adapter = Claude()
-    personality = {'まさる': 'アートの初心者', 'きよこ':'アートの初心者', 'たかし':'アートの中級者'}
     
-    # art_conv: アートについて語る　モードの場合
-    # adapter.set_task("art_conv", personality)
-    # art_view_conv: 示された画像について語るモードの場合
-    adapter.set_task("art_view_conv", personality, ".\\img\\monet_suiren.jpg")
+    if args.task == "art_conv":
+        # art_conv: アートについて語る　モードの場合
+        names = ['まさる','きよこ','たかし']
+        personalities = ['アートの初心者','アートの初心者','アートの中級者']
+        adapter.set_task("art_conv", names, personalities)
+    elif args.task == "art_view_conv":
+        # art_view_conv: 示された画像について語るモードの場合
+        names = ['まさる','きよこ','たかし']
+        personalities = ['アートの初心者','アートの初心者','アートの中級者']
+        adapter.set_task("art_view_conv", names, personalities, args.img_file)
+    elif args.task == "normal_conv":
+        names = ['たかし','きよこ','まさお']
+        personalities = ['average','selfcenter','average']
+        adapter.set_task("normal_conv", names, personalities)
 
     while True:
         user_input = input("message: ")
         if user_input.lower() == "quit":
             break
-        
+
         res = adapter.create_chat(user_input)
         print(f"{res}")
