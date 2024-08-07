@@ -78,7 +78,7 @@ class CommuClaudeChat:
                         self.system_prompt += l
                     except Exception as e:
                         print("cannot open file:", imgfile)        
-        # print(self.system_prompt) 
+        print(self.system_prompt) 
 
     def writelog(self,val):
         if val['role'] == 'user':

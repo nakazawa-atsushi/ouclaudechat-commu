@@ -1,15 +1,30 @@
 import dotenv
 import os
 import glob
+import time
 import sys
 from anthropic import Anthropic
 import random
 import base64
 import datetime
 import argparse
+import threading
 from commu_claude_chat import CommuClaudeChat
 
 dotenv.load_dotenv()
+
+# test of threading
+# queueを監視するスレッド
+def monitor(x):
+    print("Thread start")
+    print(x)
+    print(x.empty())
+    while(True):
+        if x.empty() == True:
+            time.sleep(0.01)
+        else:
+            val = x.get()
+            print("value = ", val)
 
 if __name__ == "__main__":
 
@@ -46,6 +61,9 @@ if __name__ == "__main__":
     else:
         print("wrong task name.")
         sys.exit(0)
+
+    # begin thread
+    # threading.Thread(target=monitor, args=(adapter.q_speech,), daemon=True).start()
 
     while True:
         user_input = input("message: ")
