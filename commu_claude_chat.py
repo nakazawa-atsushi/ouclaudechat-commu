@@ -1,3 +1,6 @@
+import os, sys, datetime
+import base64
+import queue
 from anthropic import Anthropic
 
 class CommuClaudeChat:
@@ -8,15 +11,21 @@ class CommuClaudeChat:
         self.messages = []
         self.system_prompt = ""
         self.target_img = None
-        self.mode = "art_conv"
+        self.mode = "art"
         self.nconv = 0
         self.username = "user"
         self.streaming = True
 
+        # ログファイルの準備
         if os.path.exists("./log/") is False:
             os.mkdir("./log/")
         dt = datetime.datetime.now()
         self.logfile = os.path.join('log',dt.strftime('%Y-%m-%d-%H-%M-%S') + '.log')
+
+        # 発話用とロボット動作向けのキュー，chatの中でパースしたものがここに保存される
+        # 発話オプションやロボット動作オプションがあれば，ここを参照する
+        self.q_speech = queue.Queue()
+        self.q_behavior = queue.Queue()
 
     def set_username(self, name):
         self.username = name
@@ -25,7 +34,7 @@ class CommuClaudeChat:
         self.task = task
         self.system_prompt = "* You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
         
-        if self.task == "art_view_conv" or self.task == "art_conv":
+        if self.task == "art_view" or self.task == "art":
             self.system_prompt += f'{",".join(names)}はアートコミュニケーションの会話をしています．'
             for name,personality in zip(names,personalities):
                 self.system_prompt += f'{name}は{personality}です．'            
@@ -39,9 +48,9 @@ class CommuClaudeChat:
         self.system_prompt += f'文章の終わりは必ず句読点で終わるようにしてください．'
 
         # ART VIEW CONVタスクの場合は画像を読み込んで，messagesの先頭に追加する
-        if self.task == "art_view_conv":
+        if self.task == "art_view":
             if imgfile == None:
-                print("error: specify image filename in art_view_conv mode.")
+                print("error: specify image filename in art_view mode.")
                 return
             
             # only accept jpeg file!!
@@ -58,7 +67,7 @@ class CommuClaudeChat:
                     return
         
         # 通常会話の場合，それぞれのパーソナリティを設定する
-        if self.task == "normal_conv":
+        if self.task == "normal":
             for name,personality in zip(names,personalities):
                 # personality directoryから文章を読み出し名前を変換する
                 fname = os.path.join('personality',f"p_{personality}.txt")
@@ -80,7 +89,7 @@ class CommuClaudeChat:
                 f.write(val['content'])
 
     def create_chat(self, user_message):
-        if self.mode == "art_view_conv" and self.nconv == 0:
+        if self.mode == "art_view" and self.nconv == 0:
             self.messages = [{"role": "user",
                                 "content": [
                                     {"type": "image", 
@@ -120,13 +129,56 @@ class CommuClaudeChat:
                 max_tokens = 500,
             ) as stream:
                 response_content = ""
+                name = ""
+                emot = ""
+                talk = []
+                mode = 0
+                
                 for text in stream.text_stream:
                     print(text, end="", flush=True)
                     response_content += text
-                print("")
 
+                    # 1文字づつパーシング処理する
+                    DELIMITER = ['.',',','．','。','，',',','、','？','?','！','!']
+
+                    for x in text:
+                        if x == '[':
+                            mode = 1
+                            name = ""
+                            emot = ""
+                            talk = []
+                        elif x == ']':
+                            mode = 0
+                        elif x == '(':
+                            mode = 2
+                        elif x == ')':
+                            mode = 3
+                            self.q_behavior.put([name,emot])
+                            buf = ""
+                        else:
+                            if mode == 1:
+                                name += x
+                            elif mode == 2:
+                                emot += x
+                            elif mode == 3:
+                                if x == '\n':
+                                    continue
+                                if x in DELIMITER:
+                                    buf += x
+                                    self.q_speech.put([name,buf])
+                                    buf = ""
+                                else:
+                                    buf += x
+
+            print("")
             self.messages.append({"role": "assistant", "content": response_content})
             self.writelog({"role": "assistant", "content": response_content})
+
+            # print queue for debugging
+            #while self.q_behavior.empty() == False:
+            #    print(self.q_behavior.get())
+            #while self.q_speech.empty() == False:
+            #    print(self.q_speech.get())
 
         self.nconv += 1
 
