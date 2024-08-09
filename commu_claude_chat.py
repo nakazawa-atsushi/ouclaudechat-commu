@@ -174,12 +174,6 @@ class CommuClaudeChat:
             self.messages.append({"role": "assistant", "content": response_content})
             self.writelog({"role": "assistant", "content": response_content})
 
-            # print queue for debugging
-            #while self.q_behavior.empty() == False:
-            #    print(self.q_behavior.get())
-            #while self.q_speech.empty() == False:
-            #    print(self.q_speech.get())
-
         self.nconv += 1
 
         return response_content
