@@ -1,6 +1,7 @@
 import os, sys, datetime
 import base64
 import queue
+import threading
 from anthropic import Anthropic
 
 class CommuClaudeChat:
@@ -177,3 +178,4 @@ class CommuClaudeChat:
         self.nconv += 1
 
         return response_content
+         

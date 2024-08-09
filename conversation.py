@@ -10,6 +10,7 @@ import datetime
 import argparse
 import threading
 from commu_claude_chat import CommuClaudeChat
+from play_voicebox import play_voicebox
 
 dotenv.load_dotenv()
 
@@ -25,6 +26,9 @@ def monitor(x):
         else:
             val = x.get()
             print("value = ", val)
+            name, buf = val[0], val[1]
+            play_voicebox(name,buf)
+            
 
 if __name__ == "__main__":
 
@@ -63,7 +67,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # begin thread
-    # threading.Thread(target=monitor, args=(adapter.q_speech,), daemon=True).start()
+    threading.Thread(target=monitor, args=(adapter.q_speech,), daemon=True).start()
+    
 
     while True:
         user_input = input("message: ")
