@@ -2,6 +2,39 @@ import requests
 import json
 import pyaudio
 import threading
+import queue
+import time
+
+
+# test of threading
+# queueを監視するスレッド
+def monitor(x):
+    print("Thread start")
+    print(x)
+    print(x.empty())
+    while(True):
+        if x.empty() == True:
+            time.sleep(0.01)
+        else:
+            val = x.get()
+            print("value = ", val)
+            name, buf = val[0], val[1]
+            voicetype = name_conversion(name)
+            play_voicebox(voicetype,buf)
+
+def name_conversion(name):
+    #http://localhost:50021/speakers voicevox起動中にアクセスするとspeaker一覧にアクセスできる
+    if name == "まさる":
+        voice_type = 2
+    elif name == "きよこ":
+        voice_type = 3
+    elif name == "たかし":
+        voice_type = 29
+    else:
+        print("Undefined name")
+        voice_type = 20
+
+    return voice_type
 
 def play_voicebox(voice_type, text):
     # エンジン起動時に表示されているIP、portを指定

@@ -10,25 +10,10 @@ import datetime
 import argparse
 import threading
 from commu_claude_chat import CommuClaudeChat
-from play_voicebox import play_voicebox
+from play_voicebox import monitor
 
 dotenv.load_dotenv()
-
-# test of threading
-# queueを監視するスレッド
-def monitor(x):
-    print("Thread start")
-    print(x)
-    print(x.empty())
-    while(True):
-        if x.empty() == True:
-            time.sleep(0.01)
-        else:
-            val = x.get()
-            print("value = ", val)
-            name, buf = val[0], val[1]
-            play_voicebox(name,buf)
-            
+ 
 
 if __name__ == "__main__":
 
