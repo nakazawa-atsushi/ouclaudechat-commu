@@ -10,7 +10,7 @@ import datetime
 import argparse
 import threading
 from commu_claude_chat import CommuClaudeChat
-from play_voicebox import monitor
+from play_voicebox import play_voicebox
 
 dotenv.load_dotenv()
  
@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
     # setup claude
     adapter = CommuClaudeChat()
+    audio = play_voicebox()
 
     if args.task == "art":
         # art_conv: アートについて語る　モードの場合
@@ -52,7 +53,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # begin thread
-    threading.Thread(target=monitor, args=(adapter.q_speech,), daemon=True).start()
+    threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True).start()
     
 
     while True:
