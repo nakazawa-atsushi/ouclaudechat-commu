@@ -16,13 +16,14 @@ class play_voicebox:
 
     def monitor(self,x):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
+        # audio_t = threading.Thread(target=self.wavplay, daemon=True)
         audio_t.start()
         print("Thread start")
         print(x)
         print(x.empty())
         while(True):
             if x.empty() == True:
-                time.sleep(0.01)
+                time.sleep(0.1)
             else:
                 val = x.get()
                 print("value = ", val)
@@ -74,37 +75,24 @@ class play_voicebox:
         self.q_audio.put(voice)
             
         
-
     def audio_play(self):
-        pya = pyaudio.PyAudio()  
-        
+        print("use def audioplay")
         while True:
-            if self.q_audio.empty() == True:
-                time.sleep(0.01)
-            else:
-                voice = self.q_audio.get()
-                # サンプリングレートが24000以外だとずんだもんが高音になったり低音になったりする
-                stream = pya.open(format=pyaudio.paInt16,
-                                channels=1,
-                                rate=24000,
-                                output=True)
-                
-                stream.write(voice)
-                stream.stop_stream()
-                stream.close()
-        pya.terminate()
-
-    """            
-    def wavplay(self):
-        while True:
-            if self.q_audio.empty() == True:
-                time.sleep(0.01)
-            else:
-                voice = self.q_audio.get()
-                with tempfile.TemporaryDirectory() as tmp:
-                    with open(f"{tmp}/audi.wav", "wb") as f:
-                        f.write(voice)
-                        wav_obj = simpleaudio.WaveObject.from_wave_file(f"{tmp}/audi.wav")
-                        play_obj = wav_obj.play() #Starts playback of the audio
-                        play_obj.wait_done() #Waits for the playback job to finish before returning.
-    """
+            try:
+                voice = self.q_audio.get_nowait()
+            except queue.Empty:
+                time.sleep(0.1)
+                continue
+            
+            pya = pyaudio.PyAudio()  
+            # サンプリングレートが24000以外だとずんだもんが高音になったり低音になったりする
+            stream = pya.open(format=pyaudio.paInt16,
+                            channels=1,
+                            rate=24000,
+                            output=True)
+            time.sleep(0.15)    #これがないと音声を開始するたびにぶつぶつ音が鳴ります（0.15より短くしてもなります）
+            stream.write(voice) #音声再生
+            # cpu = stream.get_cpu_load()   #Return the CPU load. Always 0.0 when using the blocking API.
+            # stream.stop_stream()  #stop_stream, close, terminateを使用すると音声の末尾が途中で切れます
+            # stream.close()
+            # pya.terminate()
