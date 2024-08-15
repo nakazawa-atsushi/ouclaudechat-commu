@@ -16,7 +16,6 @@ class play_voicebox:
 
     def monitor(self,x):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
-        # audio_t = threading.Thread(target=self.wavplay, daemon=True)
         audio_t.start()
         print("Thread start")
         print(x)
