@@ -10,6 +10,8 @@ import time
 class play_voicebox:
     def __init__(self) -> None:
         self.q_audio = queue.Queue()
+        self.voice_flag = False
+        self.audio_flag = False
 
     def monitor(self,x):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
@@ -17,15 +19,22 @@ class play_voicebox:
         print("Thread start")
         print(x)
         print(x.empty())
+        memory_voicetype = None
         while(True):
             if x.empty() == True:
                 time.sleep(0.1)
             else:
                 val = x.get()
-                print("value = ", val)
+                delay_flag = False
+                # print("value = ", val)
                 name, buf = val[0], val[1]
                 voicetype = self.name_conversion(name)
-                self.voicevox(voicetype,buf)
+                if not memory_voicetype:
+                    memory_voicetype = voicetype
+                elif not memory_voicetype == voicetype:
+                    delay_flag = True
+                    memory_voicetype = voicetype
+                self.voicevox(voicetype,buf,delay_flag)
                 
                 
 
@@ -43,7 +52,7 @@ class play_voicebox:
 
         return voice_type
 
-    def voicevox(self, voice_type, text):
+    def voicevox(self, voice_type, text,delay_flag):
         # エンジン起動時に表示されているIP、portを指定
         host = "127.0.0.1"
         port = 50021
@@ -68,11 +77,12 @@ class play_voicebox:
             data = json.dumps(query.json())
         )
         voice = synthesis.content
+        if delay_flag:
+            self.q_audio.put("delay")
         self.q_audio.put(voice)
             
         
     def audio_play(self):
-        print("use def audioplay")
         while True:
             try:
                 voice = self.q_audio.get_nowait()
@@ -80,7 +90,12 @@ class play_voicebox:
                 time.sleep(0.1)
                 continue
             
-            pya = pyaudio.PyAudio()  
+            if voice == "delay":
+                print("delay")
+                time.sleep(1)
+                continue
+            
+            pya = pyaudio.PyAudio()
             # サンプリングレートが24000以外だとずんだもんが高音になったり低音になったりする
             stream = pya.open(format=pyaudio.paInt16,
                             channels=1,
