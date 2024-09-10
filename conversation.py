@@ -9,6 +9,7 @@ import base64
 import datetime
 import argparse
 import threading
+import socket
 from commu_claude_chat import CommuClaudeChat
 from play_voicebox import play_voicebox
 
@@ -21,6 +22,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', "--task")     # タスク
     parser.add_argument('-f', "--img_file")
+    parser.add_argument('-v', '--voice',action='store_true',default=False,
+                        help="指定したらvoicevoxを使用する(フラグ)")
     args = parser.parse_args()
     # print(args.task, args.img_file)
 
@@ -52,9 +55,20 @@ if __name__ == "__main__":
         print("wrong task name.")
         sys.exit(0)
 
-    # begin thread
-    threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True).start()
-    
+    # -vフラグが経てばvoice start
+    if args.voice:
+        print("voice start")
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.connect(("127.0.0.1",50021))
+            s.close()
+            print("通信成功")
+            threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True).start()
+        except socket.error as e:
+            print("エラー発生:",e)
+            print("voicevoxを起動してください")
+            print("音声出力無しで実行します")
+            s.close()
 
     while True:
         user_input = input("message: ")
