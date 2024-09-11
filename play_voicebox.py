@@ -10,10 +10,9 @@ import time
 class play_voicebox:
     def __init__(self) -> None:
         self.q_audio = queue.Queue()
-        self.voice_flag = False
-        self.audio_flag = False
+        self.voiceend_flag = False
 
-    def monitor(self,x):
+    def monitor(self, x:queue):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
         audio_t.start()
         print("Thread start")
@@ -25,13 +24,18 @@ class play_voicebox:
                 time.sleep(0.1)
             else:
                 val = x.get()
-                delay_flag = False
                 # print("value = ", val)
                 name, buf = val[0], val[1]
+                if name == "*chatend*" and buf == "*signal*": #chatから出力が最後の合図を受け取ったら
+                    print("voice end")
+                    self.voiceend_flag = True
+                    audio_t.join()  #音声再生が終了するまでストップ
+                    return
                 voicetype = self.name_conversion(name)
+                delay_flag = False
                 if not memory_voicetype:
                     memory_voicetype = voicetype
-                elif not memory_voicetype == voicetype:
+                elif not memory_voicetype == voicetype: #話者が変わったらdelay_flagをTrueにする
                     delay_flag = True
                     memory_voicetype = voicetype
                 self.voicevox(voicetype,buf,delay_flag)
@@ -52,7 +56,7 @@ class play_voicebox:
 
         return voice_type
 
-    def voicevox(self, voice_type, text,delay_flag):
+    def voicevox(self, voice_type, text, delay_flag:bool):
         # エンジン起動時に表示されているIP、portを指定
         host = "127.0.0.1"
         port = 50021
@@ -77,8 +81,8 @@ class play_voicebox:
             data = json.dumps(query.json())
         )
         voice = synthesis.content
-        if delay_flag:
-            self.q_audio.put("delay")
+        if delay_flag:  #delay_flagがtrueならqueueに"delay"文字列を追加
+            self.q_audio.put("*delay*")
         self.q_audio.put(voice)
             
         
@@ -87,10 +91,14 @@ class play_voicebox:
             try:
                 voice = self.q_audio.get_nowait()
             except queue.Empty:
+                if self.voiceend_flag:  #もし音声合成がすべて終了した後にq.audio(queue)が空なら，音声再生も終わったと判断する
+                    print("def audioplay return")
+                    self.voiceend_flag = False  #flagを元に戻してからreturn
+                    return
                 time.sleep(0.1)
                 continue
             
-            if voice == "delay":
+            if voice == "*delay*":    #getした文字が"delay"なら音声出力せずに1秒間sleep
                 print("delay")
                 time.sleep(1)
                 continue

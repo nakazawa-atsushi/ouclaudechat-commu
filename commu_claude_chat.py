@@ -79,7 +79,7 @@ class CommuClaudeChat:
                         self.system_prompt += l
                     except Exception as e:
                         print("cannot open file:", imgfile)        
-        print(self.system_prompt) 
+        # print(self.system_prompt) 
 
     def writelog(self,val):
         if val['role'] == 'user':
@@ -171,6 +171,7 @@ class CommuClaudeChat:
                                 else:
                                     buf += x
 
+            self.q_speech.put(["*chatend*","*signal*"]) #出力が終わったら[0]に*chatend*,[1]に*signal*をput
             print("")
             self.messages.append({"role": "assistant", "content": response_content})
             self.writelog({"role": "assistant", "content": response_content})
