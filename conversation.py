@@ -10,21 +10,10 @@ import datetime
 import argparse
 import threading
 from commu_claude_chat import CommuClaudeChat
+from play_voicebox import play_voicebox
 
 dotenv.load_dotenv()
-
-# test of threading
-# queueを監視するスレッド
-def monitor(x):
-    print("Thread start")
-    print(x)
-    print(x.empty())
-    while(True):
-        if x.empty() == True:
-            time.sleep(0.01)
-        else:
-            val = x.get()
-            print("value = ", val)
+ 
 
 if __name__ == "__main__":
 
@@ -43,6 +32,7 @@ if __name__ == "__main__":
 
     # setup claude
     adapter = CommuClaudeChat()
+    audio = play_voicebox()
 
     if args.task == "art":
         # art_conv: アートについて語る　モードの場合
@@ -63,7 +53,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     # begin thread
-    # threading.Thread(target=monitor, args=(adapter.q_speech,), daemon=True).start()
+    threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True).start()
+    
 
     while True:
         user_input = input("message: ")
