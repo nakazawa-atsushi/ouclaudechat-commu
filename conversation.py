@@ -12,7 +12,7 @@ import threading
 import socket
 from commu_claude_chat import CommuClaudeChat
 from play_voicebox import play_voicebox
-from whisper_mic2.whisper_mic.whisper_mic import WhisperMic
+from local_whisper_mic import WhisperMic
 
 dotenv.load_dotenv()
  
