@@ -11,6 +11,8 @@ class play_voicebox:
     def __init__(self) -> None:
         self.q_audio = queue.Queue()
         self.voiceend_flag = False
+        self.change_event = threading.Event()
+        self.talkend_event = threading.Event()
 
     def monitor(self, x:queue):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
@@ -93,6 +95,7 @@ class play_voicebox:
             except queue.Empty:
                 if self.voiceend_flag:  #もし音声合成がすべて終了した後にq.audio(queue)が空なら，音声再生も終わったと判断する
                     print("def audioplay return")
+                    self.talkend_event.set()    #robotgesture用のイベント
                     self.voiceend_flag = False  #flagを元に戻してからreturn
                     return
                 time.sleep(0.1)
@@ -100,6 +103,7 @@ class play_voicebox:
             
             if voice == "*delay*":    #getした文字が"delay"なら音声出力せずに1秒間sleep
                 print("delay")
+                self.change_event.set()
                 time.sleep(1)
                 continue
             

@@ -30,6 +30,20 @@ def start_voice_thread(voice_t:threading):
         print("voicevoxを起動してください")
         print("音声出力無しで実行します")
         s.close()
+
+def robottest():
+    while True:
+        audio.change_event.wait(timeout=1)
+        if audio.change_event.is_set():
+            print("robot gesture")
+            audio.change_event.clear()
+        else:
+            print("pass talker change")
+            
+        if audio.talkend_event.is_set():
+            print("robot gesture end")
+            audio.talkend_event.clear()
+            return
     
 
 if __name__ == "__main__":
@@ -110,6 +124,7 @@ if __name__ == "__main__":
             print(f"{res}")
             
         if args.voice:
+            robottest()
             if voice_thread.is_alive():
                 voice_thread.join()
         
