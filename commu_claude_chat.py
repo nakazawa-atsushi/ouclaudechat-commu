@@ -3,6 +3,7 @@ import base64
 import queue
 import threading
 from anthropic import Anthropic
+import glob
 
 class CommuClaudeChat:
     def __init__(self):
@@ -31,9 +32,10 @@ class CommuClaudeChat:
     def set_username(self, name):
         self.username = name
 
-    def set_task(self, task, names, personalities, imgfile = None):
+    def set_task(self, task, names, personalities, imgfile = None, experience_flag:bool = False):
         self.task = task
         self.system_prompt = "* You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
+        print(experience_flag)
         
         if self.task == "art_view" or self.task == "art":
             self.system_prompt += f'{",".join(names)}はアートコミュニケーションの会話をしています．'
@@ -69,6 +71,9 @@ class CommuClaudeChat:
         
         # 通常会話の場合，それぞれのパーソナリティを設定する
         if self.task == "normal":
+            expathlist = glob.glob(os.path.join("experience","meidai","sampling","*"))
+            #expathlist = [["data001","data002","data007"],["data003","data004","data008"],["data005","data006","data010"]]
+
             for name,personality in zip(names,personalities):
                 # personality directoryから文章を読み出し名前を変換する
                 fname = os.path.join('personality',f"p_{personality}.txt")
@@ -78,8 +83,23 @@ class CommuClaudeChat:
                         l = l.replace('{name}',name)
                         self.system_prompt += l
                     except Exception as e:
-                        print("cannot open file:", imgfile)        
-        # print(self.system_prompt) 
+                        print("cannot open file:", imgfile)
+                
+                if experience_flag:
+                    self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
+                    self.system_prompt += "この経験を踏まえて会話文を出力してください."
+                    for i in range(20):
+                        ex_file = expathlist.pop(0)
+                        print(f"{name}'s experience : {ex_file}")
+                        with open(ex_file,"r",encoding="utf-8") as f:
+                            ex = f.read()
+                            ex_text = ex.replace("[name]",name)
+                            ex_lines = ex_text.splitlines()
+                            ex_lines = ex_lines[1:-1]
+                            
+                            self.system_prompt += "\n".join(ex_lines)
+                    # print(ex)
+                # print(self.system_prompt) 
 
     def writelog(self,val):
         if val['role'] == 'user':

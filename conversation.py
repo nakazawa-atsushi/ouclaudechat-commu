@@ -56,6 +56,8 @@ if __name__ == "__main__":
                         help="指定したらvoicevoxを使用する(フラグ)")
     parser.add_argument('-m', '--mic', action='store_true',
                         help="指定したらマイク入力になる(フラグ)")
+    parser.add_argument("-e", "--experience", action= "store_true",
+                        help="個人的体験をclaudeに与える(フラグ)")
     args = parser.parse_args()
     # print(args.task, args.img_file)
 
@@ -98,7 +100,7 @@ if __name__ == "__main__":
     elif args.task == "normal":
         names = ['まさる','きよこ','たかし']
         personalities = ['average','selfcenter','average']
-        adapter.set_task("normal", names, personalities)
+        adapter.set_task("normal", names, personalities,experience_flag = args.experience)
     else:
         print("wrong task name.")
         sys.exit(0)
