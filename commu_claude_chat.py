@@ -264,7 +264,8 @@ class CommuClaudeChat:
                                     buf = ""
                                 else:
                                     buf += x
-
+            print(f"\n[{name}]:{self.username}さんは，どうですか？")
+            self.q_speech.put([name,f"{self.username}さんは，どうですか？"])
             self.q_speech.put(["*chatend*","*signal*"]) #出力が終わったら[0]に*chatend*,[1]に*signal*をput
             print("")
             self.messages.append({"role": "assistant", "content": response_content})

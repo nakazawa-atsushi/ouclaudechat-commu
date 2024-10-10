@@ -49,6 +49,8 @@ if __name__ == "__main__":
     # print(args.task, args.img_file)
 
     print(args)
+    
+    convend_flag = False
 
     if args.task is None:
         print("specify task by option -t [art|art_view|normal] -f image_file")
@@ -113,12 +115,21 @@ if __name__ == "__main__":
             if user_input == "":
                 print("文字を入力してください")
                 continue
-        if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了":
-            break
+        # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
+        if user_input.lower() in ["quit","くいｔ","終了","さようなら","さよなら"]:
+            print("ありがとうございました．またお会いしましょう.")
+            if not args.voice:
+                break
+            convend_flag = True
         
         if args.voice:  # -vフラグが立っていればvoice start
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
+            if convend_flag:
+                adapter.q_speech.put([names[1],"ありがとうございました．またお会いしましょう."])
+                adapter.q_speech.put(["*chatend*","*signal*"])
+                voice_thread.join()
+                break
             
         res = adapter.create_chat(user_input)
         if adapter.streaming == False:
