@@ -29,22 +29,9 @@ def start_voice_thread(voice_t:threading):
         print("エラー発生:",e)
         print("voicevoxを起動してください")
         print("音声出力無しで実行します")
+        args.voice = False
         s.close()
 
-def robottest():
-    while True:
-        audio.change_event.wait(timeout=1)
-        if audio.change_event.is_set():
-            print("robot gesture")
-            audio.change_event.clear()
-        else:
-            print("pass talker change")
-            
-        if audio.talkend_event.is_set():
-            print("robot gesture end")
-            audio.talkend_event.clear()
-            return
-    
 
 if __name__ == "__main__":
 
@@ -71,7 +58,7 @@ if __name__ == "__main__":
     adapter = CommuClaudeChat()
     audio = play_voicebox()
     try:
-        mic = WhisperMic() if args.mic else None
+        mic = WhisperMic(pause=0.5) if args.mic else None
     except AssertionError as e:
         print(f"AsserionError: {e}")
         print("テキスト入力でプログラムを実行します")
@@ -85,35 +72,47 @@ if __name__ == "__main__":
         print(f"予期しないエラー: {e}")
         print("テキスト入力でプログラムを実行します")
         args.mic = False
-        
+    # mic = WhisperMic(pause=0.5) if args.mic else None    
  
     if args.task == "art":
         # art_conv: アートについて語る　モードの場合
         names = ['まさる','きよこ','たかし']
         personalities = ['アートの初心者','アートの初心者','アートの中級者']
-        adapter.set_task("art", names, personalities)
+        
+        # adapter.set_task("art", names, personalities, experience_flag = args.experience)
     elif args.task == "art_view":
         # art_view_conv: 示された画像について語るモードの場合
         names = ['まさる','きよこ','たかし']
         personalities = ['アートの初心者','アートの初心者','アートの中級者']
-        adapter.set_task("art_view", names, personalities, args.img_file)
+        # adapter.set_task("art_view", names, personalities, args.img_file, experience_flag = args.experience)
     elif args.task == "normal":
         names = ['まさる','きよこ','たかし']
         personalities = ['average','selfcenter','average']
-        adapter.set_task("normal", names, personalities,experience_flag = args.experience)
+        # adapter.set_task("normal", names, personalities, experience_flag = args.experience)
     else:
         print("wrong task name.")
         sys.exit(0)
+    attributes = [['male','20'],["female","20"],["female","60"]]
+    adapter.set_task(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
         
 
     while True:
         if args.mic:
             mic.toggle_microphone()
-            user_input = mic.listen()
+            while True:
+                user_input = mic.listen()    #
+                if user_input == "Timeout: No speech detected within the specified time.":
+                    print(f"timeout seconds has passed, so timeout is done. please say one more")
+                    continue
+                else:
+                    break
             mic.toggle_microphone()
             print("You said: " + user_input)
         else:
             user_input = input("message: ")
+            if user_input == "":
+                print("文字を入力してください")
+                continue
         if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了":
             break
         
@@ -124,9 +123,9 @@ if __name__ == "__main__":
         res = adapter.create_chat(user_input)
         if adapter.streaming == False:
             print(f"{res}")
+        print("\n")
             
         if args.voice:
-            robottest()
             if voice_thread.is_alive():
                 voice_thread.join()
         

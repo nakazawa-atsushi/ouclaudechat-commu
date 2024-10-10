@@ -4,6 +4,8 @@ import pyaudio
 import threading
 import queue
 import time
+import re
+import alkana
 
 # test of threading
 # queueを監視するスレッド
@@ -13,6 +15,7 @@ class play_voicebox:
         self.voiceend_flag = False
         self.change_event = threading.Event()
         self.talkend_event = threading.Event()
+        self.talkstart_flag = False
 
     def monitor(self, x:queue):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
@@ -28,10 +31,15 @@ class play_voicebox:
                 val = x.get()
                 # print("value = ", val)
                 name, buf = val[0], val[1]
+                if name == "*chatstart*" and buf == "*signal*":
+                    print("chat start")
+                    self.change_event.set()
+                    continue
                 if name == "*chatend*" and buf == "*signal*": #chatから出力が最後の合図を受け取ったら
                     print("voice end")
                     self.voiceend_flag = True
                     audio_t.join()  #音声再生が終了するまでストップ
+                    self.talkstart_flag = False
                     return
                 voicetype = self.name_conversion(name)
                 delay_flag = False
@@ -40,6 +48,8 @@ class play_voicebox:
                 elif not memory_voicetype == voicetype: #話者が変わったらdelay_flagをTrueにする
                     delay_flag = True
                     memory_voicetype = voicetype
+                
+                buf = self.english_convert(buf) #英単語をカタカナ読みに変換(できない単語もある)
                 self.voicevox(voicetype,buf,delay_flag)
                 
                 
@@ -57,6 +67,17 @@ class play_voicebox:
             voice_type = 20
 
         return voice_type
+
+    def english_convert(self, text):
+        english_words = re.findall(r'[a-zA-Z]+', text)
+        for word in english_words:
+            katakana_word = alkana.get_kana(word)
+            # 英単語をカタカナに置き換え
+            if katakana_word == "" or katakana_word == None:
+                print(f"変換できませんでした {word}")
+                continue
+            text = text.replace(word, katakana_word)
+        return text
 
     def voicevox(self, voice_type, text, delay_flag:bool):
         # エンジン起動時に表示されているIP、portを指定
@@ -100,7 +121,7 @@ class play_voicebox:
                     return
                 time.sleep(0.1)
                 continue
-            
+                        
             if voice == "*delay*":    #getした文字が"delay"なら音声出力せずに1秒間sleep
                 print("delay")
                 self.change_event.set()

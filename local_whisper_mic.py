@@ -24,7 +24,7 @@ from whisper_mic.utils import get_logger
 # asound = cdll.LoadLibrary('libasound.so')
 # asound.snd_lib_error_set_handler(c_error_handler)
 class WhisperMic:
-    def __init__(self,model="medium",device=("cuda" if torch.cuda.is_available() else "cpu"),english=False,verbose=False,energy=300,pause=2,dynamic_energy=False,save_file=False, model_root="~/.cache/whisper",mic_index=None,implementation="whisper",hallucinate_threshold=300):
+    def __init__(self,model="medium",device=("cuda" if torch.cuda.is_available() else "cpu"),english=False,verbose=False,energy=300,pause=2,dynamic_energy=False,save_file=False, model_root=".cache/whisper",mic_index=None,implementation="whisper",hallucinate_threshold=300):
 
         self.logger = get_logger("whisper_mic", "info")
         self.energy = energy
@@ -55,7 +55,7 @@ class WhisperMic:
             print("faster")
             try:
                 from faster_whisper import WhisperModel
-                self.audio_model = WhisperModel(model, download_root=model_root, device="auto", compute_type="int8")            
+                self.audio_model = WhisperModel(model, download_root=model_root, device="auto", compute_type="int8")
                 self.faster = True    # Only set the flag if we succesfully imported the library and opened the model.
             except ImportError:
                 self.logger.error("faster_whisper not installed, falling back to whisper")

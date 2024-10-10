@@ -4,6 +4,7 @@ import queue
 import threading
 from anthropic import Anthropic
 import glob
+import re
 
 class CommuClaudeChat:
     def __init__(self):
@@ -17,6 +18,7 @@ class CommuClaudeChat:
         self.nconv = 0
         self.username = "user"
         self.streaming = True
+        self.exnumber = 0
 
         # ログファイルの準備
         if os.path.exists("./log/") is False:
@@ -32,12 +34,13 @@ class CommuClaudeChat:
     def set_username(self, name):
         self.username = name
 
-    def set_task(self, task, names, personalities, imgfile = None, experience_flag:bool = False):
+    def set_task(self, task, names, personalities, attributes, imgfile = None, experience_flag:bool = False):
         self.task = task
         self.system_prompt = "* You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
         print(experience_flag)
         
         if self.task == "art_view" or self.task == "art":
+            print("art")
             self.system_prompt += f'{",".join(names)}はアートコミュニケーションの会話をしています．'
             for name,personality in zip(names,personalities):
                 self.system_prompt += f'{name}は{personality}です．'            
@@ -71,7 +74,7 @@ class CommuClaudeChat:
         
         # 通常会話の場合，それぞれのパーソナリティを設定する
         if self.task == "normal":
-            expathlist = glob.glob(os.path.join("experience","meidai","sampling","*"))
+            print("normal")
             #expathlist = [["data001","data002","data007"],["data003","data004","data008"],["data005","data006","data010"]]
 
             for name,personality in zip(names,personalities):
@@ -84,23 +87,93 @@ class CommuClaudeChat:
                         self.system_prompt += l
                     except Exception as e:
                         print("cannot open file:", imgfile)
+        """
+        if experience_flag:
+        selectlist = glob.glob(os.path.join("experience","meidai","select_sampling","*"))
+        for name,personality in zip(names,personalities): 
+            self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
+            ex_file = selectlist.pop(0)
+            with open(ex_file,"r",encoding="utf-8") as f:
+                ex = f.read()
+            self.system_prompt += ex + "\n"
+            self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください.\n"
+        # print(self.system_prompt)
+       
+        if experience_flag:
+            expathlist = glob.glob(os.path.join("experience","meidai","sampling","*"))
+            selectlist = glob.glob(os.path.join("experience","meidai","select_sampling","*"))
+            self.exnumber = 30
+            for name,personality in zip(names,personalities): 
+                self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
+                for i in range(self.exnumber):
+                    ex_file = expathlist.pop(0)
+                    with open(ex_file,"r",encoding="utf-8") as f:
+                        ex = f.read()
+                    ex_text = ex.replace("[name]",name)
+                    ex_lines = ex_text.splitlines()
+                    ex_lines = ex_lines[1:-1]
+                    self.system_prompt += "\n".join(ex_lines)
+                self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください."
+        """            
+        if experience_flag:
+            self.exnumber = 30
+            female20_flag = False
+            for name, personality, attribute in zip(names,personalities,attributes):
+                gender = attribute[0]
+                age = attribute[1]
+                self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
+                self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
+                expathlist = glob.glob(os.path.join("experience","meidai","a_sampling",gender,age,"*"))
                 
-                if experience_flag:
-                    self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
-                    self.system_prompt += "この経験を踏まえて会話文を出力してください."
-                    for i in range(20):
+                if gender == "female" and age == "20":
+                    if female20_flag:
+                        expathlist = expathlist[50:]
+                    female20_flag = True
+                    
+                file_number = len(expathlist)
+                display_flag = False
+                for i in range(self.exnumber):
+                    try:
                         ex_file = expathlist.pop(0)
-                        print(f"{name}'s experience : {ex_file}")
-                        with open(ex_file,"r",encoding="utf-8") as f:
-                            ex = f.read()
-                            ex_text = ex.replace("[name]",name)
-                            ex_lines = ex_text.splitlines()
-                            ex_lines = ex_lines[1:-1]
-                            
-                            self.system_prompt += "\n".join(ex_lines)
-                    # print(ex)
-                # print(self.system_prompt) 
-
+                    except IndexError as e:
+                        if not display_flag:
+                            print(f"{name}:There are only {file_number} files for {gender} {age}s")
+                            display_flag = True
+                        continue
+                    
+                    with open(ex_file,"r",encoding="utf-8") as f:
+                        ex = f.read()
+                    ex_text = self.namechange(ex_file, ex, name)
+                    ex_lines = ex_text.splitlines()
+                    ex_lines = ex_lines[2:-1]
+                    self.system_prompt += "\n".join(ex_lines)
+                    
+                self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください.\n"
+                
+                with open(self.logfile,'a',encoding="utf-8") as f:
+                    f.write(f"{name}の属性 : {gender}, {age}")  
+                
+        with open(self.logfile,'a',encoding="utf-8") as f:
+            f.write(f"各エージェントに与えた経験ファイル数: {self.exnumber}")        
+        
+            
+        self.system_prompt += f'{",".join(names)}はグループで会話をしています．'
+        self.system_prompt += f'{",".join(names)}の会話文はなるべく1回ずつ出力してください.'
+                
+                # print(ex)
+        # print(self.system_prompt) 
+    def namechange(self,path,text,name):
+        file_name = os.path.basename(path)
+        ori_name_match = re.match(r"^\w+_(\w+)\.txt$",file_name)
+        if ori_name_match:
+            ori_name = ori_name_match.group(1)
+        else:
+            print("failed replace name")
+            return text
+        re_text = text.replace(ori_name,name)
+        return re_text
+        
+        
     def writelog(self,val):
         if val['role'] == 'user':
             with open(self.logfile,'a',encoding="utf-8") as f:
@@ -147,13 +220,14 @@ class CommuClaudeChat:
                 model = self.model,
                 system = self.system_prompt,
                 messages = self.messages,
-                max_tokens = 500,
+                max_tokens = 2000,
             ) as stream:
                 response_content = ""
                 name = ""
                 emot = ""
                 talk = []
                 mode = 0
+                self.q_speech.put(["*chatstart*","*signal*"]) 
                 
                 for text in stream.text_stream:
                     print(text, end="", flush=True)
