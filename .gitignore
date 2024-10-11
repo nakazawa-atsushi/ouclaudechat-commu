@@ -1,0 +1,3 @@
+.cache/whisper/base.pt
+log
+__pycache__
