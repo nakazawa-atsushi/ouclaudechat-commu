@@ -1,4 +1,8 @@
+import threading
 from anthropic import Anthropic
+from commu_claude_chat import CommuClaudeChat
+from play_voicebox import play_voicebox
+from local_whisper_mic import WhisperMic
 
 client = Anthropic()
 
@@ -24,22 +28,22 @@ def tool():
     return tools
 
 def extract_claude(text):
-    while True:
-        tools = tool()
-        res = client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=1024,
-            tools=tools,
-            messages=[{"role":"user","content":text}]
-        )
-        print(res)
-        print(res.stop_reason)
-        if res.stop_reason == "tool_use":
-            print(res.content[1].input["speaker_name"])
-            break
-        else:
-            text = input("もう一度お願いします: ")
+    tools = tool()
+    res = client.messages.create(
+        model="claude-3-5-sonnet-20240620",
+        max_tokens=1024,
+        tools=tools,
+        messages=[{"role":"user","content":text}]
+    )
+    print(res)
+    if not res.stop_reason == "tool_use":
+        return "", res.stop_reason
+
+    return res.content[1].input["speaker_name"], res.stop_reason
+
 
 if __name__ == "__main__":
-    text = "私は掃除が好きです"
-    extract_claude(text)
+    text = "沖田です"
+    user,reason = extract_claude(text)
+    print(user)
+    print(reason)

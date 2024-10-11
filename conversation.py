@@ -13,6 +13,7 @@ import socket
 from commu_claude_chat import CommuClaudeChat
 from play_voicebox import play_voicebox
 from local_whisper_mic import WhisperMic
+from introduce import extract_claude
 
 dotenv.load_dotenv()
  
@@ -31,6 +32,18 @@ def start_voice_thread(voice_t:threading):
         print("音声出力無しで実行します")
         args.voice = False
         s.close()
+ 
+        
+def intro(args:argparse, adapter:CommuClaudeChat, audio:play_voicebox):
+    if args.voice:
+        voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
+        start_voice_thread(voice_thread)
+    adapter.create_chat("まずは短く自己紹介しましょう")
+    if args.voice:
+        if voice_thread.is_alive():
+            voice_thread.join()
+    
+    
 
 
 if __name__ == "__main__":
@@ -45,9 +58,11 @@ if __name__ == "__main__":
                         help="指定したらマイク入力になる(フラグ)")
     parser.add_argument("-e", "--experience", action= "store_true",
                         help="個人的体験をclaudeに与える(フラグ)")
+    parser.add_argument("-i", "--introduce", action= "store_true",
+                        help="自己紹介をする(フラグ)")
     args = parser.parse_args()
     # print(args.task, args.img_file)
-
+    
     print(args)
     
     convend_flag = False
@@ -96,18 +111,16 @@ if __name__ == "__main__":
         sys.exit(0)
     attributes = [['male','20'],["female","20"],["female","60"]]
     adapter.set_task(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
+    
+    
+    if args.introduce:
+        intro(args,adapter,audio)
         
-
+    
     while True:
         if args.mic:
             mic.toggle_microphone()
-            while True:
-                user_input = mic.listen()    #
-                if user_input == "Timeout: No speech detected within the specified time.":
-                    print(f"timeout seconds has passed, so timeout is done. please say one more")
-                    continue
-                else:
-                    break
+            user_input = mic.listen()    #
             mic.toggle_microphone()
             print("You said: " + user_input)
         else:
@@ -115,6 +128,24 @@ if __name__ == "__main__":
             if user_input == "":
                 print("文字を入力してください")
                 continue
+            
+        if args.introduce:
+            user, reason = extract_claude(user_input)
+            if not reason == "tool_use":
+                if args.voice:
+                    voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
+                    start_voice_thread(voice_thread)
+                    adapter.q_speech.put([names[1],"ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？"])
+                    adapter.q_speech.put(["*chatend*","*signal*"])
+                    voice_thread.join() 
+                else:
+                    print("ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？")
+                continue
+            adapter.set_username(user)
+            args.introduce = False
+                
+            
+        
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
         if user_input.lower() in ["quit","くいｔ","終了","さようなら","さよなら"]:
             print("ありがとうございました．またお会いしましょう.")

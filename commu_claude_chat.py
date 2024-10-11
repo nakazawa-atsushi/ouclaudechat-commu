@@ -159,6 +159,7 @@ class CommuClaudeChat:
             
         self.system_prompt += f'{",".join(names)}はグループで会話をしています．'
         self.system_prompt += f'{",".join(names)}の会話文はなるべく1回ずつ出力してください.'
+        self.system_prompt += "まずは短く全員自己紹介から始めましょう"
                 
                 # print(ex)
         # print(self.system_prompt) 
