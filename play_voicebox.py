@@ -60,7 +60,7 @@ class play_voicebox:
             voice_type = 2
         elif name == "きよこ":
             voice_type = 3
-        elif name == "たかし":
+        elif name == "たかこ":
             voice_type = 29
         else:
             print("Undefined name")

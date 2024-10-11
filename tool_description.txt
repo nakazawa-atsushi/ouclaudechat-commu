@@ -3,5 +3,4 @@ Do not extract names other than the speaker's, such as the person who is asking 
 One should not fabricate a name when it has not been provided.
 The input text is expected to be in Japanese.
 Do not use tool calling if you cannot extract anything that looks like a name.
-If both first and last name are available, output only the first name.
-If only the last name is obtained, output the last name.
+Minimize responses when name extraction is not possible.

@@ -33,6 +33,9 @@ class CommuClaudeChat:
 
     def set_username(self, name):
         self.username = name
+        print(f"username: {self.username}")
+        self.system_prompt += f"ユーザーの名前は{self.username}です．"
+
 
     def set_task(self, task, names, personalities, attributes, imgfile = None, experience_flag:bool = False):
         self.task = task
@@ -87,41 +90,15 @@ class CommuClaudeChat:
                         self.system_prompt += l
                     except Exception as e:
                         print("cannot open file:", imgfile)
-        """
-        if experience_flag:
-        selectlist = glob.glob(os.path.join("experience","meidai","select_sampling","*"))
-        for name,personality in zip(names,personalities): 
-            self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
-            ex_file = selectlist.pop(0)
-            with open(ex_file,"r",encoding="utf-8") as f:
-                ex = f.read()
-            self.system_prompt += ex + "\n"
-            self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください.\n"
-        # print(self.system_prompt)
-       
-        if experience_flag:
-            expathlist = glob.glob(os.path.join("experience","meidai","sampling","*"))
-            selectlist = glob.glob(os.path.join("experience","meidai","select_sampling","*"))
-            self.exnumber = 30
-            for name,personality in zip(names,personalities): 
-                self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
-                for i in range(self.exnumber):
-                    ex_file = expathlist.pop(0)
-                    with open(ex_file,"r",encoding="utf-8") as f:
-                        ex = f.read()
-                    ex_text = ex.replace("[name]",name)
-                    ex_lines = ex_text.splitlines()
-                    ex_lines = ex_lines[1:-1]
-                    self.system_prompt += "\n".join(ex_lines)
-                self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください."
-        """            
+
         if experience_flag:
             self.exnumber = 30
             female20_flag = False
             for name, personality, attribute in zip(names,personalities,attributes):
                 gender = attribute[0]
                 age = attribute[1]
-                self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
+                # self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
+                self.system_prompt += f"{name}の年齢は{age}代です"
                 self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
                 expathlist = glob.glob(os.path.join("experience","meidai","a_sampling",gender,age,"*"))
                 
@@ -158,8 +135,9 @@ class CommuClaudeChat:
         
             
         self.system_prompt += f'{",".join(names)}はグループで会話をしています．'
+        self.system_prompt += f'前の人の発言とつながるようにしながら会話をしてください'
         self.system_prompt += f'{",".join(names)}の会話文はなるべく1回ずつ出力してください.'
-        self.system_prompt += "まずは短く全員自己紹介から始めましょう"
+        self.system_prompt += "出力の最後にユーザーの名前を呼びながら発話を促すようにしてください"
                 
                 # print(ex)
         # print(self.system_prompt) 
@@ -183,6 +161,10 @@ class CommuClaudeChat:
             with open(self.logfile,'a',encoding="utf-8") as f:
                 f.write(val['content'])
 
+    def update_message(self,user_message,asst_message): #For connection with introduce.py
+        # self.messages.append({'role': 'user', 'content': user_message})
+        self.messages.append({"role": "assistant", "content": asst_message})
+    
     def create_chat(self, user_message):
         if self.mode == "art_view" and self.nconv == 0:
             self.messages = [{"role": "user",
@@ -265,8 +247,7 @@ class CommuClaudeChat:
                                     buf = ""
                                 else:
                                     buf += x
-            print(f"\n[{name}]:{self.username}さんは，どうですか？")
-            self.q_speech.put([name,f"{self.username}さんは，どうですか？"])
+            # self.q_speech.put([name,f"{self.username}さんはどう思いますか？"])
             self.q_speech.put(["*chatend*","*signal*"]) #出力が終わったら[0]に*chatend*,[1]に*signal*をput
             print("")
             self.messages.append({"role": "assistant", "content": response_content})

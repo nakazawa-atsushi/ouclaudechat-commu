@@ -13,7 +13,7 @@ import socket
 from commu_claude_chat import CommuClaudeChat
 from play_voicebox import play_voicebox
 from local_whisper_mic import WhisperMic
-from introduce import extract_claude
+import introduce
 
 dotenv.load_dotenv()
  
@@ -34,14 +34,14 @@ def start_voice_thread(voice_t:threading):
         s.close()
  
         
-def intro(args:argparse, adapter:CommuClaudeChat, audio:play_voicebox):
-    if args.voice:
-        voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
-        start_voice_thread(voice_thread)
-    adapter.create_chat("まずは短く自己紹介しましょう")
-    if args.voice:
-        if voice_thread.is_alive():
-            voice_thread.join()
+# def intro(args:argparse, adapter:CommuClaudeChat, audio:play_voicebox):
+#     if args.voice:
+#         voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
+#         start_voice_thread(voice_thread)
+#     adapter.create_chat("まずは短く自己紹介しましょう")
+#     if args.voice:
+#         if voice_thread.is_alive():
+#             voice_thread.join()
     
     
 
@@ -74,6 +74,9 @@ if __name__ == "__main__":
     # setup claude
     adapter = CommuClaudeChat()
     audio = play_voicebox()
+    intro = introduce.intro_chat()
+    extract = introduce.extract_name()
+    
     try:
         mic = WhisperMic(pause=0.5) if args.mic else None
     except AssertionError as e:
@@ -93,30 +96,47 @@ if __name__ == "__main__":
  
     if args.task == "art":
         # art_conv: アートについて語る　モードの場合
-        names = ['まさる','きよこ','たかし']
+        # names = ['まさる','きよこ','たかし']
         personalities = ['アートの初心者','アートの初心者','アートの中級者']
         
         # adapter.set_task("art", names, personalities, experience_flag = args.experience)
     elif args.task == "art_view":
         # art_view_conv: 示された画像について語るモードの場合
-        names = ['まさる','きよこ','たかし']
+        # names = ['まさる','きよこ','たかし']
         personalities = ['アートの初心者','アートの初心者','アートの中級者']
         # adapter.set_task("art_view", names, personalities, args.img_file, experience_flag = args.experience)
     elif args.task == "normal":
-        names = ['まさる','きよこ','たかし']
+        # names = ['まさる','きよこ','たかし']
         personalities = ['average','selfcenter','average']
         # adapter.set_task("normal", names, personalities, experience_flag = args.experience)
     else:
         print("wrong task name.")
         sys.exit(0)
+    names = ['まさる','きよこ','たかこ']
     attributes = [['male','20'],["female","20"],["female","60"]]
     adapter.set_task(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
     
     
     if args.introduce:
-        intro(args,adapter,audio)
+        # intro(args, adapter, audio)
+        intro.initial_set(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
+        user_input = "こんにちは．40文字以内で自己紹介をお願いします．"
+        if args.voice:
+            voice_thread = threading.Thread(target=audio.monitor, args=(intro.q_speech,), daemon=True)
+            start_voice_thread(voice_thread)
+        intro.initial_set(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
+        res = intro.initial_chat(user_input)
+
+        adapter.q_behavior.put(intro.q_behavior.get())
         
-    
+        adapter.update_message(user_input,res)
+        
+        
+        
+        if args.voice:
+            if voice_thread.is_alive():
+                voice_thread.join()
+        
     while True:
         if args.mic:
             mic.toggle_microphone()
@@ -130,20 +150,18 @@ if __name__ == "__main__":
                 continue
             
         if args.introduce:
-            user, reason = extract_claude(user_input)
+            user, reason = extract.extract_claude(user_input)
             if not reason == "tool_use":
+                print("ごめんなさい．もう一度お名前を教えてもらえますか？")
                 if args.voice:
                     voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
                     start_voice_thread(voice_thread)
                     adapter.q_speech.put([names[1],"ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？"])
                     adapter.q_speech.put(["*chatend*","*signal*"])
                     voice_thread.join() 
-                else:
-                    print("ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？")
                 continue
             adapter.set_username(user)
-            args.introduce = False
-                
+            args.introduce = False                
             
         
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
@@ -158,6 +176,7 @@ if __name__ == "__main__":
             start_voice_thread(voice_thread)
             if convend_flag:
                 adapter.q_speech.put([names[1],"ありがとうございました．またお会いしましょう."])
+                adapter.q_behavior.put([names[1]],"joy")
                 adapter.q_speech.put(["*chatend*","*signal*"])
                 voice_thread.join()
                 break
