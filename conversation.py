@@ -74,7 +74,7 @@ if __name__ == "__main__":
     # setup claude
     adapter = CommuClaudeChat()
     audio = play_voicebox()
-    intro = introduce.intro_chat()
+    # intro = introduce.intro_chat()
     extract = introduce.extract_name()
     
     try:
@@ -119,20 +119,12 @@ if __name__ == "__main__":
     
     if args.introduce:
         # intro(args, adapter, audio)
-        intro.initial_set(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
         user_input = "こんにちは．40文字以内で自己紹介をお願いします．"
         if args.voice:
-            voice_thread = threading.Thread(target=audio.monitor, args=(intro.q_speech,), daemon=True)
+            voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
-        intro.initial_set(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
-        res = intro.initial_chat(user_input)
-
-        adapter.q_behavior.put(intro.q_behavior.get())
-        
-        adapter.update_message(user_input,res)
-        
-        
-        
+        # intro.initial_set(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
+        res = adapter.introduction(user_input)
         if args.voice:
             if voice_thread.is_alive():
                 voice_thread.join()
@@ -181,7 +173,7 @@ if __name__ == "__main__":
                 voice_thread.join()
                 break
             
-        res = adapter.create_chat(user_input)
+        res = adapter.main_conversation(user_input)
         if adapter.streaming == False:
             print(f"{res}")
         print("\n")

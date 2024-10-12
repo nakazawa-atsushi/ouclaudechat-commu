@@ -5,6 +5,7 @@ import threading
 from anthropic import Anthropic
 import glob
 import re
+import random
 
 class CommuClaudeChat:
     def __init__(self):
@@ -19,6 +20,7 @@ class CommuClaudeChat:
         self.username = "user"
         self.streaming = True
         self.exnumber = 0
+        self.names = []
 
         # ログファイルの準備
         if os.path.exists("./log/") is False:
@@ -34,11 +36,10 @@ class CommuClaudeChat:
     def set_username(self, name):
         self.username = name
         print(f"username: {self.username}")
-        self.system_prompt += f"ユーザーの名前は{self.username}です．"
-
 
     def set_task(self, task, names, personalities, attributes, imgfile = None, experience_flag:bool = False):
         self.task = task
+        self.names = names
         self.system_prompt = "* You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
         print(experience_flag)
         
@@ -92,7 +93,7 @@ class CommuClaudeChat:
                         print("cannot open file:", imgfile)
 
         if experience_flag:
-            self.exnumber = 30
+            
             female20_flag = False
             for name, personality, attribute in zip(names,personalities,attributes):
                 gender = attribute[0]
@@ -109,6 +110,10 @@ class CommuClaudeChat:
                     
                 file_number = len(expathlist)
                 display_flag = False
+                
+                # random.shuffle(expathlist)
+                self.exnumber = 30
+
                 for i in range(self.exnumber):
                     try:
                         ex_file = expathlist.pop(0)
@@ -134,10 +139,8 @@ class CommuClaudeChat:
             f.write(f"各エージェントに与えた経験ファイル数: {self.exnumber}")        
         
             
-        self.system_prompt += f'{",".join(names)}はグループで会話をしています．'
-        self.system_prompt += f'前の人の発言とつながるようにしながら会話をしてください'
-        self.system_prompt += f'{",".join(names)}の会話文はなるべく1回ずつ出力してください.'
-        self.system_prompt += "出力の最後にユーザーの名前を呼びながら発話を促すようにしてください"
+        
+        
                 
                 # print(ex)
         # print(self.system_prompt) 
@@ -151,6 +154,23 @@ class CommuClaudeChat:
             return text
         re_text = text.replace(ori_name,name)
         return re_text
+    
+    def introduction(self,user_message):
+        system = self.system_prompt
+        system += f'{",".join(self.names)}はグループで会話を始めるところです．'
+        system += "全員短めに自己紹介をしましょう"
+        system += "最後にユーザーの名前を聞いてください"
+        system += "ユーザーのことはあなたと呼んでください"
+        self.create_chat(user_message,system)
+    
+    def main_conversation(self,user_message):
+        system = self.system_prompt
+        system += f'{",".join(self.names)}はグループで会話をしています．'
+        system += f'前の人の発言とつながるようにしながら会話をしてください'
+        system += f'{",".join(self.names)}の会話文はなるべく1周だけ出力してください.'
+        system += "出力の最後にユーザーの名前を呼びながら発話を促すようにしてください.促しは最後に1度だけお願いします."
+        system += f"ユーザーの名前は{self.username}です．"
+        self.create_chat(user_message,system)
         
         
     def writelog(self,val):
@@ -160,12 +180,8 @@ class CommuClaudeChat:
         else:
             with open(self.logfile,'a',encoding="utf-8") as f:
                 f.write(val['content'])
-
-    def update_message(self,user_message,asst_message): #For connection with introduce.py
-        # self.messages.append({'role': 'user', 'content': user_message})
-        self.messages.append({"role": "assistant", "content": asst_message})
     
-    def create_chat(self, user_message):
+    def create_chat(self, user_message,sys_message):
         if self.mode == "art_view" and self.nconv == 0:
             self.messages = [{"role": "user",
                                 "content": [
@@ -201,7 +217,7 @@ class CommuClaudeChat:
             # ストリーミングモードの場合
             with self.client.messages.stream(
                 model = self.model,
-                system = self.system_prompt,
+                system = sys_message,
                 messages = self.messages,
                 max_tokens = 2000,
             ) as stream:
