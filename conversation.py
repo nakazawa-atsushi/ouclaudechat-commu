@@ -60,6 +60,8 @@ if __name__ == "__main__":
                         help="個人的体験をclaudeに与える(フラグ)")
     parser.add_argument("-i", "--introduce", action= "store_true",
                         help="自己紹介をする(フラグ)")
+    parser.add_argument("-p", "--personality", action= "store_true",
+                        help="性格特性を付与する(フラグ)")
     args = parser.parse_args()
     # print(args.task, args.img_file)
     
@@ -113,6 +115,9 @@ if __name__ == "__main__":
         print("wrong task name.")
         sys.exit(0)
     names = ['まさる','きよこ','たかこ']
+    if not args.personality:
+        personalities = []
+
     attributes = [['male','20'],["female","20"],["female","60"]]
     adapter.set_task(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
     

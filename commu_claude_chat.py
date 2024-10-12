@@ -90,12 +90,12 @@ class CommuClaudeChat:
                         l = l.replace('{name}',name)
                         self.system_prompt += l
                     except Exception as e:
-                        print("cannot open file:", imgfile)
+                        print("cannot open file:", fname)
 
         if experience_flag:
             
             female20_flag = False
-            for name, personality, attribute in zip(names,personalities,attributes):
+            for name, attribute in zip(names,attributes):
                 gender = attribute[0]
                 age = attribute[1]
                 # self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
@@ -130,7 +130,7 @@ class CommuClaudeChat:
                     ex_lines = ex_lines[2:-1]
                     self.system_prompt += "\n".join(ex_lines)
                     
-                self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください.\n"
+                self.system_prompt += f"この{name}の経験を常に会話文に反映させてください.\n"
                 
                 with open(self.logfile,'a',encoding="utf-8") as f:
                     f.write(f"{name}の属性 : {gender}, {age}")  
@@ -167,7 +167,7 @@ class CommuClaudeChat:
         system = self.system_prompt
         system += f'{",".join(self.names)}はグループで会話をしています．'
         system += f'前の人の発言とつながるようにしながら会話をしてください'
-        system += f'{",".join(self.names)}の会話文はなるべく1周だけ出力してください.'
+        system += f'{",".join(self.names)}はそれぞれ1回だけ話すようにしてください'
         system += "出力の最後にユーザーの名前を呼びながら発話を促すようにしてください.促しは最後に1度だけお願いします."
         system += f"ユーザーの名前は{self.username}です．"
         self.create_chat(user_message,system)
@@ -182,6 +182,7 @@ class CommuClaudeChat:
                 f.write(val['content'])
     
     def create_chat(self, user_message,sys_message):
+        print(sys_message)
         if self.mode == "art_view" and self.nconv == 0:
             self.messages = [{"role": "user",
                                 "content": [
