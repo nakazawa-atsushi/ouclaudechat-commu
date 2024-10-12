@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Participant F106:
 Here are the key personal experiences I extracted for F106 from the conversation:
 
@@ -16,3 +17,23 @@ Here are the key personal experiences I extracted for F106 from the conversation
 - F106 says she usually just wears her hair down/loose.
 
 The conversation shows F106 trying on different outfits and having makeup applied, which seem to be new experiences for her based on her comments. She expresses feeling embarrassed and uncomfortable with the short skirt and makeup at various points.
+=======
+Participant F106:
+Here are the key personal experiences I extracted for F106 from the conversation:
+
+- F106 says she has never worn such a short skirt before.
+
+- F106 mentions she has only worn loose socks once, when her mother bought them for her to wear for a school sports festival.
+
+- F106 says she rarely does cosplay, only for performances/presentations.
+
+- F106 states she has never done makeup before.
+
+- F106 says she can't tie her own hair.
+
+- F106 mentions she likes reading books rather than styling hair.
+
+- F106 says she usually just wears her hair down/loose.
+
+The conversation shows F106 trying on different outfits and having makeup applied, which seem to be new experiences for her based on her comments. She expresses feeling embarrassed and uncomfortable with the short skirt and makeup at various points.
+>>>>>>> gesture

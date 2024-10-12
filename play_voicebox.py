@@ -60,7 +60,11 @@ class play_voicebox:
             voice_type = 2
         elif name == "きよこ":
             voice_type = 3
+<<<<<<< HEAD
         elif name == "たかこ":
+=======
+        elif name == "たかし":
+>>>>>>> gesture
             voice_type = 29
         else:
             print("Undefined name")

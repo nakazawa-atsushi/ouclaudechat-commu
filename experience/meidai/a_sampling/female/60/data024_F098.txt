@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Participant F098:
 Here are the key points about F098's personal experiences from the conversation:
 
@@ -16,3 +17,23 @@ Here are the key points about F098's personal experiences from the conversation:
 - F098 said she has students create online teaching materials rather than doing it herself, since the students are more skilled with computers.
 
 - F098 talked about how difficult it was to have students translate the "Tensei Jingo" newspaper column due to all the cultural background knowledge required.
+=======
+Participant F098:
+Here are the key points about F098's personal experiences from the conversation:
+
+- F098 recently joined a club called "Zipangu Club" for JR train discounts. She said it's for women 60 and over.
+
+- F098 mentioned she usually buys train tickets at her university co-op store.
+
+- F098 said she doesn't own a mobile phone and doesn't feel she needs one. 
+
+- F098 talked about traveling to Thailand recently for a study abroad fair.
+
+- F098 recounted a past experience of flying to America about 30 years ago on Pan Am, when planes were emptier and she could use 3 seats to sleep.
+
+- F098 mentioned once being unexpectedly upgraded to first class on a flight from Los Angeles to Ohio, but was too tired to enjoy it and fell asleep.
+
+- F098 said she has students create online teaching materials rather than doing it herself, since the students are more skilled with computers.
+
+- F098 talked about how difficult it was to have students translate the "Tensei Jingo" newspaper column due to all the cultural background knowledge required.
+>>>>>>> gesture

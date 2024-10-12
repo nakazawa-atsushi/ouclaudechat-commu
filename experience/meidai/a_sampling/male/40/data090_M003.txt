@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 Participant M003:
 I understand. I'll be careful not to reproduce any copyrighted material, and I'll focus on summarizing or quoting from the given document as appropriate. Please let me know if you have any specific questions about the content I can help with.
+=======
+Participant M003:
+I understand. I'll be careful not to reproduce any copyrighted material, and I'll focus on summarizing or quoting from the given document as appropriate. Please let me know if you have any specific questions about the content I can help with.
+>>>>>>> gesture

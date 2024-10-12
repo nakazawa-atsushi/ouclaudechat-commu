@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Participant M019:
 Based on the conversation, here are some personal experiences mentioned by M019:
 
@@ -16,3 +17,23 @@ Based on the conversation, here are some personal experiences mentioned by M019:
 7. M019 said he always thought C2 (another student) wanted to do grand-scale research projects that would take him about 10 years to complete.
 
 These are the main personal experiences and thoughts shared by M019 during the conversation.
+=======
+Participant M019:
+Based on the conversation, here are some personal experiences mentioned by M019:
+
+1. M019 said he hasn't been studying at night for about the past two weeks.
+
+2. He mentioned that he's considering becoming a research student for a year to prepare for studying abroad if he doesn't pass any teaching exams, including one in Kagoshima.
+
+3. M019 expressed that he finds it difficult to narrow down research topics and decide which aspects to focus on or leave out when writing papers.
+
+4. He said he's almost at zero progress with his master's thesis.
+
+5. M019 mentioned he didn't know about the research student system and its details before this conversation.
+
+6. He expressed shock and disappointment at feeling "overtaken" when learning that M007 had co-authored a paper with another student.
+
+7. M019 said he always thought C2 (another student) wanted to do grand-scale research projects that would take him about 10 years to complete.
+
+These are the main personal experiences and thoughts shared by M019 during the conversation.
+>>>>>>> gesture

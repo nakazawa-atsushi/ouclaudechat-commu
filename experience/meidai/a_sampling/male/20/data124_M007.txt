@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Participant M007:
 Here are the key personal experiences I extracted for M007 from the conversation:
 
@@ -14,3 +15,21 @@ Here are the key personal experiences I extracted for M007 from the conversation
 6. He indicates he's been working on research related to self-correction behavior.
 
 These experiences primarily relate to M007's academic work and publications as a graduate student.
+=======
+Participant M007:
+Here are the key personal experiences I extracted for M007 from the conversation:
+
+1. M007 mentions he received a tuition waiver for graduate school and hasn't had to pay tuition fees.
+
+2. He wrote a paper (about 10 pages) in about 2 weeks, and had a junior student (C2-san) help write about 3 pages of the discussion section. This resulted in C2-san becoming the second author on the paper.
+
+3. M007 states he has published with E-san before.
+
+4. He says he could potentially publish about 3 more papers.
+
+5. M007 mentions he gave some advice to C2-san about carefully considering getting too involved in research, as it could impact future career plans.
+
+6. He indicates he's been working on research related to self-correction behavior.
+
+These experiences primarily relate to M007's academic work and publications as a graduate student.
+>>>>>>> gesture

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Participant F128:
 Here are the key personal experiences I extracted for F128:
 
@@ -14,3 +15,21 @@ Here are the key personal experiences I extracted for F128:
 - She says her body fat percentage is around 22%, which she considers low for a woman. She compares it to her brother's very low 8%.
 
 - She recommends grilling whole eggplants in charcoal at barbecues and eating them with ginger soy sauce.
+=======
+Participant F128:
+Here are the key personal experiences I extracted for F128:
+
+- She forgot to bring an important paper bag with some items when leaving for her trip. She had to call her sister to try to find it at home.
+
+- She used to go to Gusto restaurant frequently during university, especially after club activities. She would collect points there and eventually got a Game Boy.
+
+- She went to Australia on a school trip in junior high school. Her family frantically made 1000 paper cranes the morning of departure and chased the bus to the airport to deliver them.
+
+- She does Japanese language volunteer work teaching Brazilian residents at a housing complex.
+
+- She lost touch with Japanese pop culture after living in Australia/New Zealand for a year. Now she doesn't recognize many current artists.
+
+- She says her body fat percentage is around 22%, which she considers low for a woman. She compares it to her brother's very low 8%.
+
+- She recommends grilling whole eggplants in charcoal at barbecues and eating them with ginger soy sauce.
+>>>>>>> gesture

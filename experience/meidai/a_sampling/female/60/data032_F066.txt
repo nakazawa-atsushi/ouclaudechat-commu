@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Participant F066:
 Here are the key personal experiences shared by F066 in the conversation:
 
@@ -12,3 +13,19 @@ Here are the key personal experiences shared by F066 in the conversation:
 - F066 doesn't use a digital camera or email much yet. She keeps her cell phone turned off most of the time and only uses it to make calls when needed.
 
 - F066 watched quite a few of Ichiro's baseball games in the American major leagues, though not every game. She found the games interesting to watch.
+=======
+Participant F066:
+Here are the key personal experiences shared by F066 in the conversation:
+
+- F066 went to Mt. Mitake again recently. She was hesitant to invite someone else because they were recovering from an illness, but that person still wanted to hike up rather than take the cable car.
+
+- F066 found the trail much more well-maintained compared to her previous visit. There were reinforcements added to some slopes.
+
+- The autumn colors were beautiful at Mt. Mitake, though F066 noted there are more maple trees in Kyoto compared to the Tokyo area.
+
+- F066 had planted maple trees at home before, but found they required a lot of maintenance and were prone to pests.
+
+- F066 doesn't use a digital camera or email much yet. She keeps her cell phone turned off most of the time and only uses it to make calls when needed.
+
+- F066 watched quite a few of Ichiro's baseball games in the American major leagues, though not every game. She found the games interesting to watch.
+>>>>>>> gesture
