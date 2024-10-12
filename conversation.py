@@ -10,6 +10,7 @@ import datetime
 import argparse
 import threading
 import socket
+from telnetlib import Telnet
 from commu_claude_chat import CommuClaudeChat
 from play_voicebox import play_voicebox
 from local_whisper_mic import WhisperMic
@@ -33,15 +34,104 @@ def start_voice_thread(voice_t:threading):
         args.voice = False
         s.close()
  
+def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str,h_angle_str):
+    print("Thread start")
+    print(x)
+    print(x.empty())
+    tn_masaru.write(b"pi_angle=" + pi_angle_str.encode('utf-8') + b"\n")
+    tn_kiyoko.write(b"pi_angle=" + pi_angle_str.encode('utf-8') + b"\n")
+    tn_takashi.write(b"edison_angle=" + edison_angle_str.encode('utf-8') + b"\n")
+    tn_kiyoko.write(b"h=" + h_angle_str.encode('utf-8') + b"\n")
+    tn_masaru.write(b"h=" + h_angle_str.encode('utf-8') + b"\n")
+    while(True):
+        audio.change_event.wait(timeout=0.5)
+        if audio.change_event.is_set():
+            val = x.get()
+            
+            print(f"→→→→→→{val}←←←←←")
+            try:
+                    
+                    if val[0] == "たかこ":
+                        
+                        if val[1] == "joy":
+                            tn_takashi.write(b"6\n")
+                        elif val[1] == "question":                            
+                            tn_takashi.write(b"7\n")
+                        elif val[1] == "interest":                            
+                            tn_takashi.write(b"8\n")
+                        elif val[1] == "surprise":                           
+                            tn_takashi.write(b"9\n")
+
+                        time.sleep(1.5)
+                        tn_masaru.write(b"l\n")
+                        tn_kiyoko.write(b"r\n")
+                        
+                    
+
+
+                    if val[0] == "きよこ":
+                        
+                        if val[1] == "joy":
+                            print("喜び")
+                            tn_kiyoko.write(b"6\n")
+                        elif val[1] == "question":
+                            print("疑問")
+                            tn_kiyoko.write(b"7\n")
+                        elif val[1] == "interest":
+                            print("興味")
+                            tn_kiyoko.write(b"8\n")
+                        elif val[1] == "surprise":
+                            print("驚き")
+                            tn_kiyoko.write(b"9\n")
+
+                        time.sleep(1.5)
+                        tn_takashi.write(b"l\n")  
+                        tn_masaru.write(b"s\n")
+                  
+                    
+                    
+                    if val[0] == "まさる":
+                       
+                        if val[1] == "joy":
+                            print("喜び")
+                            tn_masaru.write(b"6\n")
+                        elif val[1] == "question":
+                            print("疑問")
+                            tn_masaru.write(b"7\n")
+                        elif val[1] == "interest":
+                            print("興味")
+                            tn_masaru.write(b"8\n")
+                        elif val[1] == "surprise":
+                            print("驚き")
+                            tn_masaru.write(b"9\n")                        
+                        
+                        time.sleep(1.5)
+                        tn_kiyoko.write(b"s\n")                        
+                        tn_takashi.write(b"r\n")
+
+
+                    audio.change_event.clear()
+
+                    # time.sleep(5)    
+            except ConnectionRefusedError:
+                print("接続が拒否されました")
+            except TimeoutError:
+                print("接続がタイムアウトしました")
+            except Exception as e:
+                print(f"Telnet不良: {str(e)}")
         
-# def intro(args:argparse, adapter:CommuClaudeChat, audio:play_voicebox):
-#     if args.voice:
-#         voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
-#         start_voice_thread(voice_thread)
-#     adapter.create_chat("まずは短く自己紹介しましょう")
-#     if args.voice:
-#         if voice_thread.is_alive():
-#             voice_thread.join()
+        else:
+            # print("pass talker change")
+            pass
+   
+        if audio.talkend_event.is_set():
+ 
+            # time.sleep(1.5)
+            tn_masaru.write(b"human_r\n")
+            tn_kiyoko.write(b"human_l\n")
+            tn_takashi.write(b"s\n")
+
+            audio.talkend_event.clear()
     
     
 
@@ -62,6 +152,8 @@ if __name__ == "__main__":
                         help="自己紹介をする(フラグ)")
     parser.add_argument("-p", "--personality", action= "store_true",
                         help="性格特性を付与する(フラグ)")
+    parser.add_argument("-g", "--gesture", action= "store_true",
+                        help="ロボットのジェスチャ(フラグ)")
     args = parser.parse_args()
     # print(args.task, args.img_file)
     
@@ -121,6 +213,28 @@ if __name__ == "__main__":
     attributes = [['male','20'],["female","20"],["female","60"]]
     adapter.set_task(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
     
+    if args.gesture:
+        args.voice = True
+        try:
+            tn_masaru = Telnet("192.168.2.101", 10001)
+            tn_kiyoko = Telnet("192.168.2.103", 10001)
+            tn_takashi = Telnet("192.168.2.102", 10001)
+            edison_angle_str = input(f"edison角度(デフォルト400): ")
+            if edison_angle_str == (""):
+                edison_angle_str = "400"
+            pi_angle_str = input(f"pi角度(デフォルト800): ")
+            if pi_angle_str == (""):
+                pi_angle_str = "800"
+            h_angle_str = input(f"人間用追加角度(デフォルト200): ")
+            if h_angle_str == (""):
+                h_angle_str = "200"
+            threading.Thread(target=robot_gesture, args=(adapter.q_behavior,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str,h_angle_str,), daemon=True).start()
+        except TimeoutError as e:
+            print(e)
+            print("timeout")
+        except Exception as e:
+            print(e)
+            print("予期しないエラー")
     
     if args.introduce:
         # intro(args, adapter, audio)
@@ -172,10 +286,15 @@ if __name__ == "__main__":
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
             if convend_flag:
-                adapter.q_speech.put([names[1],"ありがとうございました．またお会いしましょう."])
-                adapter.q_behavior.put([names[1]],"joy")
+                adapter.q_speech.put([names[2],"ありがとうございました．またお会いしましょう."])
+                adapter.q_behavior.put([names[2],"joy"])
                 adapter.q_speech.put(["*chatend*","*signal*"])
+                audio.change_event.set()
                 voice_thread.join()
+                if args.gesture:
+                    tn_masaru.write(b"s\n")
+                    tn_kiyoko.write(b"s\n")
+                    tn_takashi.write(b"s\n")
                 break
             
         res = adapter.main_conversation(user_input)

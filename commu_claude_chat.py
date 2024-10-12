@@ -159,6 +159,7 @@ class CommuClaudeChat:
         system = self.system_prompt
         system += f'{",".join(self.names)}はグループで会話を始めるところです．'
         system += "全員短めに自己紹介をしましょう"
+        system += "名前は必ず話してください"
         system += "最後にユーザーの名前を聞いてください"
         system += "ユーザーのことはあなたと呼んでください"
         self.create_chat(user_message,system)
@@ -182,7 +183,7 @@ class CommuClaudeChat:
                 f.write(val['content'])
     
     def create_chat(self, user_message,sys_message):
-        print(sys_message)
+        # print(sys_message)
         if self.mode == "art_view" and self.nconv == 0:
             self.messages = [{"role": "user",
                                 "content": [

@@ -43,7 +43,7 @@ class extract_name():
             tools=tools,
             messages=[{"role":"user","content":text}]
         )
-        # print(res)
+        print(res)
         if not res.stop_reason == "tool_use":
             return "", res.stop_reason
 
