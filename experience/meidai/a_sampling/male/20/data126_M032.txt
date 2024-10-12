@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Participant M032:
 Here are the key personal experiences I extracted for M032 from the conversation:
 
@@ -19,25 +18,3 @@ Here are the key personal experiences I extracted for M032 from the conversation
 - He expresses wanting to upgrade more parts on his bike if he had the money, like the cranks, rims, and suspension.
 
 - He gives advice on proper gear shifting and pedaling technique when riding a bike.
-=======
-Participant M032:
-Here are the key personal experiences I extracted for M032 from the conversation:
-
-- M032 has traveled to Thailand, Malaysia, India, Italy, Greece, Turkey, and South Korea.
-
-- He had a bike accident recently where he fell off his bike.
-
-- He has upgraded various parts on his bicycle, including:
-  - Changing the brakes to Shimano XT 
-  - Replacing the saddle
-  - Replacing the handlebars with GO FAST brand
-  - Changing the stem and grips
-
-- He considers brakes to be the most important bike part to upgrade.
-
-- He has read books about environmental history, including information about Spain's Reconquista and its environmental impacts.
-
-- He expresses wanting to upgrade more parts on his bike if he had the money, like the cranks, rims, and suspension.
-
-- He gives advice on proper gear shifting and pedaling technique when riding a bike.
->>>>>>> gesture

@@ -24,11 +24,7 @@ from whisper_mic.utils import get_logger
 # asound = cdll.LoadLibrary('libasound.so')
 # asound.snd_lib_error_set_handler(c_error_handler)
 class WhisperMic:
-<<<<<<< HEAD
     def __init__(self,model="medium",device=("cuda" if torch.cuda.is_available() else "cpu"),english=False,verbose=False,energy=300,pause=2,dynamic_energy=False,save_file=False, model_root=".cache/whisper",mic_index=None,implementation="whisper",hallucinate_threshold=300):
-=======
-    def __init__(self,model="medium",device=("cuda" if torch.cuda.is_available() else "cpu"),english=False,verbose=False,energy=300,pause=2,dynamic_energy=False,save_file=False, model_root="~/.cache/whisper",mic_index=None,implementation="whisper",hallucinate_threshold=300):
->>>>>>> gesture
 
         self.logger = get_logger("whisper_mic", "info")
         self.energy = energy

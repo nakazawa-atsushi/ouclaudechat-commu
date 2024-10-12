@@ -5,10 +5,7 @@ import threading
 from anthropic import Anthropic
 import glob
 import re
-<<<<<<< HEAD
 import random
-=======
->>>>>>> gesture
 
 class CommuClaudeChat:
     def __init__(self):
@@ -23,10 +20,7 @@ class CommuClaudeChat:
         self.username = "user"
         self.streaming = True
         self.exnumber = 0
-<<<<<<< HEAD
         self.names = []
-=======
->>>>>>> gesture
 
         # ログファイルの準備
         if os.path.exists("./log/") is False:
@@ -96,7 +90,6 @@ class CommuClaudeChat:
                         l = l.replace('{name}',name)
                         self.system_prompt += l
                     except Exception as e:
-<<<<<<< HEAD
                         print("cannot open file:", fname)
 
         if experience_flag:
@@ -107,44 +100,6 @@ class CommuClaudeChat:
                 age = attribute[1]
                 # self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
                 self.system_prompt += f"{name}の年齢は{age}代です"
-=======
-                        print("cannot open file:", imgfile)
-        """
-        if experience_flag:
-        selectlist = glob.glob(os.path.join("experience","meidai","select_sampling","*"))
-        for name,personality in zip(names,personalities): 
-            self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
-            ex_file = selectlist.pop(0)
-            with open(ex_file,"r",encoding="utf-8") as f:
-                ex = f.read()
-            self.system_prompt += ex + "\n"
-            self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください.\n"
-        # print(self.system_prompt)
-       
-        if experience_flag:
-            expathlist = glob.glob(os.path.join("experience","meidai","sampling","*"))
-            selectlist = glob.glob(os.path.join("experience","meidai","select_sampling","*"))
-            self.exnumber = 30
-            for name,personality in zip(names,personalities): 
-                self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
-                for i in range(self.exnumber):
-                    ex_file = expathlist.pop(0)
-                    with open(ex_file,"r",encoding="utf-8") as f:
-                        ex = f.read()
-                    ex_text = ex.replace("[name]",name)
-                    ex_lines = ex_text.splitlines()
-                    ex_lines = ex_lines[1:-1]
-                    self.system_prompt += "\n".join(ex_lines)
-                self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください."
-        """            
-        if experience_flag:
-            self.exnumber = 30
-            female20_flag = False
-            for name, personality, attribute in zip(names,personalities,attributes):
-                gender = attribute[0]
-                age = attribute[1]
-                self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
->>>>>>> gesture
                 self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
                 expathlist = glob.glob(os.path.join("experience","meidai","a_sampling",gender,age,"*"))
                 
@@ -155,13 +110,10 @@ class CommuClaudeChat:
                     
                 file_number = len(expathlist)
                 display_flag = False
-<<<<<<< HEAD
                 
                 # random.shuffle(expathlist)
                 self.exnumber = 30
 
-=======
->>>>>>> gesture
                 for i in range(self.exnumber):
                     try:
                         ex_file = expathlist.pop(0)
@@ -178,11 +130,7 @@ class CommuClaudeChat:
                     ex_lines = ex_lines[2:-1]
                     self.system_prompt += "\n".join(ex_lines)
                     
-<<<<<<< HEAD
                 self.system_prompt += f"この{name}の経験を常に会話文に反映させてください.\n"
-=======
-                self.system_prompt += f"この{name}の経験を踏まえて会話文を出力してください.\n"
->>>>>>> gesture
                 
                 with open(self.logfile,'a',encoding="utf-8") as f:
                     f.write(f"{name}の属性 : {gender}, {age}")  
@@ -191,13 +139,8 @@ class CommuClaudeChat:
             f.write(f"各エージェントに与えた経験ファイル数: {self.exnumber}")        
         
             
-<<<<<<< HEAD
         
         
-=======
-        self.system_prompt += f'{",".join(names)}はグループで会話をしています．'
-        self.system_prompt += f'{",".join(names)}の会話文はなるべく1回ずつ出力してください.'
->>>>>>> gesture
                 
                 # print(ex)
         # print(self.system_prompt) 
@@ -211,7 +154,6 @@ class CommuClaudeChat:
             return text
         re_text = text.replace(ori_name,name)
         return re_text
-<<<<<<< HEAD
     
     def introduction(self,user_message):
         system = self.system_prompt
@@ -230,8 +172,6 @@ class CommuClaudeChat:
         system += "出力の最後にユーザーの名前を呼びながら発話を促すようにしてください.促しは最後に1度だけお願いします."
         system += f"ユーザーの名前は{self.username}です．"
         self.create_chat(user_message,system)
-=======
->>>>>>> gesture
         
         
     def writelog(self,val):
@@ -325,11 +265,7 @@ class CommuClaudeChat:
                                     buf = ""
                                 else:
                                     buf += x
-<<<<<<< HEAD
             # self.q_speech.put([name,f"{self.username}さんはどう思いますか？"])
-=======
-
->>>>>>> gesture
             self.q_speech.put(["*chatend*","*signal*"]) #出力が終わったら[0]に*chatend*,[1]に*signal*をput
             print("")
             self.messages.append({"role": "assistant", "content": response_content})

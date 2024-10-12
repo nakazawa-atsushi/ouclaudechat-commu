@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Participant F037:
 Here are the key personal experiences I extracted for F037 from the conversation:
 
@@ -13,19 +12,3 @@ Here are the key personal experiences I extracted for F037 from the conversation
 - F037 has two older sisters
 - F037's parents want her to return home after graduating
 - F037 doesn't think she'll go abroad, as her parents wouldn't approve
-=======
-Participant F037:
-Here are the key personal experiences I extracted for F037 from the conversation:
-
-- F037 returned home for New Year's recently
-- F037 didn't do much during her time at home for New Year's
-- F037 didn't want to come back after being at home
-- F037 feels she doesn't have much motivation right now
-- F037 met a guy from the engineering department recently, who she initially found cute but was disappointed when he talked a lot
-- F037 prefers men who don't talk too much, especially on first meetings
-- F037 doesn't have the contact information for the engineering student she met
-- F037 lived in Iwakuni City until she was 18 years old
-- F037 has two older sisters
-- F037's parents want her to return home after graduating
-- F037 doesn't think she'll go abroad, as her parents wouldn't approve
->>>>>>> gesture

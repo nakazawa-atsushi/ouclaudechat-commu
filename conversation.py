@@ -10,7 +10,6 @@ import datetime
 import argparse
 import threading
 import socket
-<<<<<<< HEAD
 from telnetlib import Telnet
 from commu_claude_chat import CommuClaudeChat
 from play_voicebox import play_voicebox
