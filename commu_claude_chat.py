@@ -92,9 +92,9 @@ class CommuClaudeChat:
                         print("cannot open file:", fname)
                         
         
-    def add_experience(self,names,attributes):
+    def add_experience(self,attributes):
         female20_flag = False   #20代女性はファイル数が多いので2回入れられるようにする
-        for name, attribute in zip(names,attributes):
+        for name, attribute in zip(self.names,attributes):
             gender = attribute[0]
             age = attribute[1]
             # self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
@@ -165,6 +165,7 @@ class CommuClaudeChat:
         system = self.system_prompt
         system += f"グループ会話には{','.join(self.names)}のメンバーが参加し、それぞれ一度だけ発言します。"
         system += f"出力中に「{','.join(self.names)}」は一度だけ発言を許可します"
+        system += f"{','.join(self.names)}はランダムな順番で話してください"
         system += f"会話の最後に、最後に話した人がユーザー（{self.username}）の名前を呼び、次の発言を促してください。"
         system += "ユーザーへの問いかけは出力を通して，1度のみにしてください"
         system += "直前の人の発言に必ず返答してください。"

@@ -214,7 +214,7 @@ if __name__ == "__main__":
     adapter.set_task(args.task, names, personalities, imgfile=args.img_file)
     
     if args.experience:
-        adapter.add_experience(names,attributes)
+        adapter.add_experience(attributes)
     
     if args.gesture:
         args.voice = True
@@ -289,8 +289,8 @@ if __name__ == "__main__":
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
             if convend_flag:
-                adapter.q_speech.put([names[2],"ありがとうございました．またお会いしましょう."])
-                adapter.q_behavior.put([names[2],"joy"])
+                adapter.q_speech.put([names[0],"ありがとうございました．またお会いしましょう."])
+                adapter.q_behavior.put([names[0],"joy"])
                 adapter.q_speech.put(["*chatend*","*signal*"])
                 audio.change_event.set()
                 voice_thread.join()
