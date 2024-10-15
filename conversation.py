@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     # コマンドライン引数を解釈する
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', "--task")     # タスク
+    parser.add_argument('-t', "--task",default="normal")     # タスク
     parser.add_argument('-f', "--img_file")
     parser.add_argument('-v', '--voice',action='store_true',
                         help="指定したらvoicevoxを使用する(フラグ)")
@@ -211,7 +211,10 @@ if __name__ == "__main__":
         personalities = []
 
     attributes = [['male','20'],["female","20"],["female","60"]]
-    adapter.set_task(args.task, names, personalities, attributes, imgfile=args.img_file, experience_flag = args.experience)
+    adapter.set_task(args.task, names, personalities, imgfile=args.img_file)
+    
+    if args.experience:
+        adapter.add_experience(names,attributes)
     
     if args.gesture:
         args.voice = True
@@ -238,7 +241,7 @@ if __name__ == "__main__":
     
     if args.introduce:
         # intro(args, adapter, audio)
-        user_input = "こんにちは．40文字以内で自己紹介をお願いします．"
+        user_input = "こんにちは．60文字以内で自己紹介をお願いします．"
         if args.voice:
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
@@ -276,7 +279,7 @@ if __name__ == "__main__":
             
         
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
-        if user_input.lower() in ["quit","くいｔ","終了","さようなら","さよなら"]:
+        if user_input.lower() in ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ"]:
             print("ありがとうございました．またお会いしましょう.")
             if not args.voice:
                 break

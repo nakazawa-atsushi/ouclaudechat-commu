@@ -11,7 +11,7 @@ class CommuClaudeChat:
     def __init__(self):
         self.client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
         self.model = "claude-3-5-sonnet-20240620"
-        self.temperature = 1.0
+        self.temperature = 0.7
         self.messages = []
         self.system_prompt = ""
         self.target_img = None
@@ -37,11 +37,10 @@ class CommuClaudeChat:
         self.username = name
         print(f"username: {self.username}")
 
-    def set_task(self, task, names, personalities, attributes, imgfile = None, experience_flag:bool = False):
+    def set_task(self, task, names, personalities, imgfile = None):
         self.task = task
         self.names = names
         self.system_prompt = "* You are not Claude, and acting as Claude is prohibited. You does not send responses as Claude, only as you."
-        print(experience_flag)
         
         if self.task == "art_view" or self.task == "art":
             print("art")
@@ -91,54 +90,52 @@ class CommuClaudeChat:
                         self.system_prompt += l
                     except Exception as e:
                         print("cannot open file:", fname)
-
-        if experience_flag:
+                        
+        
+    def add_experience(self,names,attributes):
+        female20_flag = False   #20代女性はファイル数が多いので2回入れられるようにする
+        for name, attribute in zip(names,attributes):
+            gender = attribute[0]
+            age = attribute[1]
+            # self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
+            self.system_prompt += f"{name}の年齢は{age}代です"
+            self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
+            expathlist = glob.glob(os.path.join("experience","meidai","a_sampling",gender,age,"*"))
             
-            female20_flag = False
-            for name, attribute in zip(names,attributes):
-                gender = attribute[0]
-                age = attribute[1]
-                # self.system_prompt += f"{name}の性別は{gender}，年齢は{age}代です"
-                self.system_prompt += f"{name}の年齢は{age}代です"
-                self.system_prompt += f"{name}は以下のような経験をしたことがあります.\n"
-                expathlist = glob.glob(os.path.join("experience","meidai","a_sampling",gender,age,"*"))
+            if gender == "female" and age == "20":  #女性20代ならフラグをtrueにする
+                if female20_flag:   #フラグがTrueになった後なら51個目からファイルを読み込む
+                    expathlist = expathlist[50:]
+                female20_flag = True
                 
-                if gender == "female" and age == "20":
-                    if female20_flag:
-                        expathlist = expathlist[50:]
-                    female20_flag = True
-                    
-                file_number = len(expathlist)
-                display_flag = False
-                
-                # random.shuffle(expathlist)
-                self.exnumber = 30
+            file_number = len(expathlist)
+            display_flag = False
+            
+            random.shuffle(expathlist)
+            self.exnumber = 15
 
-                for i in range(self.exnumber):
-                    try:
-                        ex_file = expathlist.pop(0)
-                    except IndexError as e:
-                        if not display_flag:
-                            print(f"{name}:There are only {file_number} files for {gender} {age}s")
-                            display_flag = True
-                        continue
-                    
-                    with open(ex_file,"r",encoding="utf-8") as f:
-                        ex = f.read()
-                    ex_text = self.namechange(ex_file, ex, name)
-                    ex_lines = ex_text.splitlines()
-                    ex_lines = ex_lines[2:-1]
-                    self.system_prompt += "\n".join(ex_lines)
-                    
-                self.system_prompt += f"この{name}の経験を常に会話文に反映させてください.\n"
+            for i in range(self.exnumber):
+                try:
+                    ex_file = expathlist.pop(0)
+                except IndexError as e:     #ファイル数オーバーなら
+                    if not display_flag:
+                        print(f"{name}:There are only {file_number} files for {gender} {age}s")     #一回だけcmdに記述
+                        display_flag = True
+                    continue
                 
-                with open(self.logfile,'a',encoding="utf-8") as f:
-                    f.write(f"{name}の属性 : {gender}, {age}")  
+                with open(ex_file,"r",encoding="utf-8") as f:
+                    ex = f.read()
+                ex_text = self.namechange(ex_file, ex, name)
+                ex_lines = ex_text.splitlines()
+                ex_lines = ex_lines[2:-1]
+                self.system_prompt += "\n".join(ex_lines)
                 
+            self.system_prompt += f"この{name}の経験を常に会話文に反映させてください.\n"
+            
+            with open(self.logfile,'a',encoding="utf-8") as f:
+                f.write(f"{name}の属性 : {gender}, {age}")  
+            
         with open(self.logfile,'a',encoding="utf-8") as f:
             f.write(f"各エージェントに与えた経験ファイル数: {self.exnumber}")        
-        
-            
         
         
                 
@@ -159,18 +156,29 @@ class CommuClaudeChat:
         system = self.system_prompt
         system += f'{",".join(self.names)}はグループで会話を始めるところです．'
         system += "全員短めに自己紹介をしましょう"
-        system += "名前は必ず話してください"
+        system += "名前と趣味と年齢を話してください"
         system += "最後にユーザーの名前を聞いてください"
         system += "ユーザーのことはあなたと呼んでください"
         self.create_chat(user_message,system)
     
     def main_conversation(self,user_message):
         system = self.system_prompt
+        system += f"グループ会話には{','.join(self.names)}のメンバーが参加し、それぞれ一度だけ発言します。"
+        system += f"会話の最後に、最後に話した人がユーザー（{self.username}）の名前を呼び、次の発言を促してください。"
+        system += "ユーザーへの問いかけは出力を通して，1度のみにしてください"
+        system += "直前の人の発言に必ず返答してください。"
+        system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
+        system += f"ユーザーには最後以外話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
+        
+        """
         system += f'{",".join(self.names)}はグループで会話をしています．'
-        system += f'前の人の発言とつながるようにしながら会話をしてください'
         system += f'{",".join(self.names)}はそれぞれ1回だけ話すようにしてください'
-        system += "出力の最後にユーザーの名前を呼びながら発話を促すようにしてください.促しは最後に1度だけお願いします."
+        system += "出力の最後にユーザーの名前を呼びながら発話を促してください.促しは最後の発言者が最後に1度だけお願いします."
         system += f"ユーザーの名前は{self.username}です．"
+        system += f'{",".join(self.names)}とユーザーはグループで会話をしています．必ず直前の人の発言に返答してください'
+        system += f'{",".join(self.names)}はお互いに話しかけあってください'
+        system += f"最後の促し以外はユーザーに話しかけないでください"
+        """
         self.create_chat(user_message,system)
         
         
@@ -222,6 +230,7 @@ class CommuClaudeChat:
                 system = sys_message,
                 messages = self.messages,
                 max_tokens = 2000,
+                # temperature= self.temperature
             ) as stream:
                 response_content = ""
                 name = ""
