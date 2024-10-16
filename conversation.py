@@ -172,7 +172,7 @@ if __name__ == "__main__":
     extract = introduce.extract_name()
     
     try:
-        mic = WhisperMic(pause=0.5) if args.mic else None
+        mic = WhisperMic(pause=1.2) if args.mic else None
     except AssertionError as e:
         print(f"AsserionError: {e}")
         print("テキスト入力でプログラムを実行します")
