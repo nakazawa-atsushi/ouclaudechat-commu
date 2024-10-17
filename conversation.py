@@ -222,15 +222,15 @@ if __name__ == "__main__":
             tn_masaru = Telnet("192.168.2.101", 10001)
             tn_kiyoko = Telnet("192.168.2.103", 10001)
             tn_takashi = Telnet("192.168.2.102", 10001)
-            edison_angle_str = input(f"edison角度(デフォルト400): ")
+            edison_angle_str = input(f"edison角度(デフォルト350): ")
             if edison_angle_str == (""):
-                edison_angle_str = "400"
+                edison_angle_str = "350"
             pi_angle_str = input(f"pi角度(デフォルト800): ")
             if pi_angle_str == (""):
                 pi_angle_str = "800"
-            h_angle_str = input(f"人間用追加角度(デフォルト200): ")
+            h_angle_str = input(f"人間用追加角度(デフォルト250): ")
             if h_angle_str == (""):
-                h_angle_str = "200"
+                h_angle_str = "250"
             threading.Thread(target=robot_gesture, args=(adapter.q_behavior,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str,h_angle_str,), daemon=True).start()
         except TimeoutError as e:
             print(e)
