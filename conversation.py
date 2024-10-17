@@ -263,28 +263,17 @@ if __name__ == "__main__":
                 print("文字を入力してください")
                 continue
             
-        if args.introduce:
-            user, reason = extract.extract_claude(user_input)
-            if not reason == "tool_use":
-                print("ごめんなさい．もう一度お名前を教えてもらえますか？")
-                if args.voice:
-                    voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
-                    start_voice_thread(voice_thread)
-                    adapter.q_speech.put([names[1],"ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？"])
-                    adapter.q_speech.put(["*chatend*","*signal*"])
-                    voice_thread.join() 
-                continue
-            adapter.set_username(user)
-            args.introduce = False                
             
         
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
-        if user_input.lower() in ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ"]:
-            print("ありがとうございました．またお会いしましょう.")
-            if not args.voice:
-                break
-            convend_flag = True
-        
+        end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ"]
+        for end_word in end_words:
+            if end_word in user_input.lower():
+                print("ありがとうございました．またお会いしましょう.")
+                if not args.voice:
+                    break
+                convend_flag = True
+
         if args.voice:  # -vフラグが立っていればvoice start
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
@@ -299,6 +288,20 @@ if __name__ == "__main__":
                     tn_kiyoko.write(b"s\n")
                     tn_takashi.write(b"s\n")
                 break
+        
+        if args.introduce:
+            user, reason = extract.extract_claude(user_input)
+            if not reason == "tool_use":
+                print("ごめんなさい．もう一度お名前を教えてもらえますか？")
+                if args.voice:
+                    adapter.q_speech.put([names[1],"ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？"])
+                    adapter.q_speech.put(["*chatend*","*signal*"])
+                    if voice_thread.is_alive():
+                        voice_thread.join() 
+                continue
+            adapter.set_username(user)
+            args.introduce = False                
+
             
         res = adapter.main_conversation(user_input)
         if adapter.streaming == False:
