@@ -129,11 +129,17 @@ class CommuClaudeChat:
                 ex_lines = ex_lines[2:-1]
                 self.system_prompt += "\n".join(ex_lines)
                 
-            self.system_prompt += f"この{name}の経験を常に会話文に反映させてください.\n"
-            
+            # self.system_prompt += f"この{name}の経験を常に会話文に反映させてください.\n"
+            # self.system_prompt += f"相手の発言に共感するために経験を用いなさい"
+            # self.system_prompt += "共感するとき以外は経験談を話さない"
+            # self.system_prompt += "極力経験談や自分の話はしない"
+
             with open(self.logfile,'a',encoding="utf-8") as f:
                 f.write(f"{name}の属性 : {gender}, {age}")  
-            
+
+        # self.system_prompt += f"{','.join(self.names)}は極力経験談や自分の話はしない"
+        # self.system_prompt += "ユーザーの話題を広げることに注力してください"
+
         with open(self.logfile,'a',encoding="utf-8") as f:
             f.write(f"各エージェントに与えた経験ファイル数: {self.exnumber}")        
         
@@ -167,10 +173,10 @@ class CommuClaudeChat:
         system += f"出力中に「{','.join(self.names)}」は一度だけ発言を許可します"
         system += f"{','.join(self.names)}はランダムな順番で話してください"
         system += f"会話の最後に、最後に話した人がユーザー（{self.username}）の名前を呼び、次の発言を促してください。"
-        system += "ユーザーへの問いかけは出力を通して，1度のみにしてください"
+        system += "ユーザーに向けての質問は1度だけにしなさい"
         system += "直前の人の発言に必ず返答してください。"
         system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
-        system += f"ユーザーには最後以外話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
+        system += f"ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
         
         """
         system += f'{",".join(self.names)}はグループで会話をしています．'
@@ -187,7 +193,7 @@ class CommuClaudeChat:
     def writelog(self,val):
         if val['role'] == 'user':
             with open(self.logfile,'a',encoding="utf-8") as f:
-                f.write(f'\n[{self.username}] {val["content"]}\n')
+                f.write(f'\n\n[{self.username}] {val["content"]}\n')
         else:
             with open(self.logfile,'a',encoding="utf-8") as f:
                 f.write(val['content'])
