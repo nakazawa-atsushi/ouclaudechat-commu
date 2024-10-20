@@ -53,6 +53,7 @@ class CommuClaudeChat:
         self.system_prompt += f'これから{",".join(names)}の発言を生成してください．'
         self.system_prompt += f'名前は行頭に[]で表記してください．'
         self.system_prompt += f'それに続き発言者の感情を(joy)(question)(interest)(surprise)から選んで答えてください．'
+        self.system_prompt += "感情を表すとき以外に()は使用しないでください"
         self.system_prompt += f'各人物の発言はできるだけ200字以内にしてください．'
         self.system_prompt += f'文章の終わりは必ず句読点で終わるようにしてください．'
 
