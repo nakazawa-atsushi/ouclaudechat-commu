@@ -57,11 +57,15 @@ class play_voicebox:
     def name_conversion(self,name):
         #http://localhost:50021/speakers voicevox起動中にアクセスするとspeaker一覧にアクセスできる
         if name == "まさる":
-            voice_type = 2
+            voice_type = 11
+            #2は四国メタン、11は玄野武宏
         elif name == "きよこ":
-            voice_type = 3
+            voice_type = 46
+            # 小夜
+            # 雨晴はう 10
         elif name == "たかこ":
-            voice_type = 29
+            voice_type = 20
+            # もち子さん
         else:
             print("Undefined name")
             voice_type = 20
