@@ -264,14 +264,20 @@ class CommuClaudeChat:
                         elif x == ']':
                             mode = 0
                         elif x == '(':
-                            mode = 2
-                        elif x == ')':
-                            mode = 3
-                            if emot not in ["joy", "surprise", "question", "interest"]:
+                            if mode == 3:
                                 mode = 0
                             else:
+                                mode = 2
+                        elif x == ')':
+                            if mode == 2:
                                 self.q_behavior.put([name,emot])
                                 buf = ""
+                            mode = 3
+                            # if emot not in ["joy", "surprise", "question", "interest"]:
+                            #     mode = 0
+                            # else:
+                            #     self.q_behavior.put([name,emot])
+                            #     buf = ""
                         else:
                             if mode == 1:
                                 name += x

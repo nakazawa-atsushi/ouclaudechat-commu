@@ -61,6 +61,8 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                             tn_takashi.write(b"8\n")
                         elif val[1] == "surprise":                           
                             tn_takashi.write(b"9\n")
+                        else:
+                            tn_takashi.write(b"s\n")
 
                         time.sleep(1.5)
                         tn_masaru.write(b"l\n")
@@ -83,6 +85,8 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                         elif val[1] == "surprise":
                             print("驚き")
                             tn_kiyoko.write(b"9\n")
+                        else:
+                            tn_kiyoko.write(b"s\n")
 
                         time.sleep(1.5)
                         tn_takashi.write(b"l\n")  
@@ -103,7 +107,9 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                             tn_masaru.write(b"8\n")
                         elif val[1] == "surprise":
                             print("驚き")
-                            tn_masaru.write(b"9\n")                        
+                            tn_masaru.write(b"9\n")    
+                        else:
+                            tn_masaru.write(b"s\n")                    
                         
                         time.sleep(1.5)
                         tn_kiyoko.write(b"s\n")                        
@@ -295,7 +301,9 @@ if __name__ == "__main__":
                 print("ごめんなさい．もう一度お名前を教えてもらえますか？")
                 if args.voice:
                     adapter.q_speech.put([names[1],"ごめんなさい．うまく聞き取れなかったので，もう一度お名前を教えてもらえますか？"])
+                    adapter.q_behavior.put([names[1],"question"])
                     adapter.q_speech.put(["*chatend*","*signal*"])
+                    audio.change_event.set()
                     if voice_thread.is_alive():
                         voice_thread.join() 
                 continue
