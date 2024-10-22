@@ -277,7 +277,7 @@ if __name__ == "__main__":
             if end_word in user_input.lower():
                 print("ありがとうございました．またお会いしましょう.")
                 if not args.voice:
-                    break
+                    sys.exit(0)
                 convend_flag = True
 
         if args.voice:  # -vフラグが立っていればvoice start
