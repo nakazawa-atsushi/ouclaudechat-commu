@@ -194,7 +194,7 @@ class CommuClaudeChat:
     def writelog(self,val):
         if val['role'] == 'user':
             with open(self.logfile,'a',encoding="utf-8") as f:
-                f.write(f'\n\n[{self.username}] {val["content"]}\n')
+                f.write(f'\n\n\n\n[{self.username}] {val["content"]}\n')
         else:
             with open(self.logfile,'a',encoding="utf-8") as f:
                 f.write(val['content'])
