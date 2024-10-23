@@ -62,7 +62,7 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                         elif val[1] == "surprise":                           
                             tn_takashi.write(b"9\n")
                         else:
-                            tn_takashi.write(b"s\n")
+                            tn_takashi.write(b"8\n")
 
                         time.sleep(1.5)
                         tn_masaru.write(b"l\n")
@@ -86,7 +86,7 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                             print("驚き")
                             tn_kiyoko.write(b"9\n")
                         else:
-                            tn_kiyoko.write(b"s\n")
+                            tn_kiyoko.write(b"8\n")
 
                         time.sleep(1.5)
                         tn_takashi.write(b"l\n")  
@@ -109,7 +109,7 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                             print("驚き")
                             tn_masaru.write(b"9\n")    
                         else:
-                            tn_masaru.write(b"s\n")                    
+                            tn_masaru.write(b"8\n")                    
                         
                         time.sleep(1.5)
                         tn_kiyoko.write(b"s\n")                        
@@ -228,15 +228,15 @@ if __name__ == "__main__":
             tn_masaru = Telnet("192.168.2.101", 10001)
             tn_kiyoko = Telnet("192.168.2.103", 10001)
             tn_takashi = Telnet("192.168.2.102", 10001)
-            edison_angle_str = input(f"edison角度(デフォルト350): ")
+            edison_angle_str = input(f"edison角度(デフォルト300): ")
             if edison_angle_str == (""):
-                edison_angle_str = "350"
-            pi_angle_str = input(f"pi角度(デフォルト800): ")
+                edison_angle_str = "300"
+            pi_angle_str = input(f"pi角度(デフォルト850): ")
             if pi_angle_str == (""):
-                pi_angle_str = "800"
-            h_angle_str = input(f"人間用追加角度(デフォルト250): ")
+                pi_angle_str = "850"
+            h_angle_str = input(f"人間用追加角度(デフォルト300): ")
             if h_angle_str == (""):
-                h_angle_str = "250"
+                h_angle_str = "300"
             threading.Thread(target=robot_gesture, args=(adapter.q_behavior,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str,h_angle_str,), daemon=True).start()
         except TimeoutError as e:
             print(e)
@@ -272,7 +272,7 @@ if __name__ == "__main__":
             
         
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
-        end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ"]
+        end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ","사요나라","사요 나라","사연하라","Sådär då"]
         for end_word in end_words:
             if end_word in user_input.lower():
                 print("ありがとうございました．またお会いしましょう.")
