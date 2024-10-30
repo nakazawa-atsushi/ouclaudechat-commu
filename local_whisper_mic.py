@@ -35,6 +35,7 @@ class WhisperMic:
         self.verbose = verbose
         self.english = english
         self.keyboard = pynput.keyboard.Controller()
+        self.micend_event = threading.Event()
 
         self.platform = platform.system().lower()
         if self.platform == "darwin":
@@ -52,10 +53,11 @@ class WhisperMic:
         self.faster = False
         implementation = "faster_whisper"
         if (implementation == "faster_whisper"):
-            print("faster")
             try:
                 from faster_whisper import WhisperModel
+                print("whisper model loading now...")
                 self.audio_model = WhisperModel(model, download_root=model_root, device="auto", compute_type="int8")
+                print("whisper model loading is completed")
                 self.faster = True    # Only set the flag if we succesfully imported the library and opened the model.
             except ImportError:
                 self.logger.error("faster_whisper not installed, falling back to whisper")
@@ -132,6 +134,8 @@ class WhisperMic:
         try:
             with self.source as microphone:
                 audio = self.recorder.listen(source=microphone, timeout=timeout, phrase_time_limit=phrase_time_limit)
+            self.micend_event.set()
+            print("e")
             self.__record_load(0, audio)
             audio_data = self.__get_all_audio()
             self.__transcribe(data=audio_data)
@@ -153,6 +157,7 @@ class WhisperMic:
 
     # This method takes the recorded audio data, converts it into raw format and stores it in a queue. 
     def __record_load(self,_, audio: sr.AudioData) -> None:
+        print("f")
         data = audio.get_raw_data()
         self.audio_queue.put_nowait(data)
 
@@ -238,6 +243,7 @@ class WhisperMic:
                     result = self.listen(timeout=timeout, phrase_time_limit=phrase_time_limit,try_again=True)
                     return result
                 else:
+                    print("a")
                     return result
 
 

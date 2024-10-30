@@ -138,6 +138,23 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
             tn_takashi.write(b"s\n")
 
             audio.talkend_event.clear()
+
+def talk_robot(tn_masaru,tn_kiyoko,tn_takashi):
+    mic.micend_event.wait()
+    print("abc")
+    try:
+        tn_kiyoko.write(b"s\n")
+        tn_masaru.write(b"s\n")
+        tn_takashi.write(b"s\n")
+    except ConnectionRefusedError:
+            print("接続が拒否されました")
+    except TimeoutError:
+        print("接続がタイムアウトしました")
+    except Exception as e:
+        print(f"Telnet不良: {str(e)}")
+    finally:
+        print("micendevent is cleared")
+        mic.micend_event.clear()
     
     
 
@@ -256,9 +273,15 @@ if __name__ == "__main__":
         if args.voice:
             if voice_thread.is_alive():
                 voice_thread.join()
-        
+    else:
+        tn_masaru.write(b"human_r\n")
+        tn_kiyoko.write(b"human_l\n")
+        tn_takashi.write(b"s\n")
+
+
     while True:
         if args.mic:
+            threading.Thread(target=talk_robot, args=(tn_masaru,tn_kiyoko,tn_takashi,), daemon=True).start()
             mic.toggle_microphone()
             user_input = mic.listen()    #
             mic.toggle_microphone()
