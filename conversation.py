@@ -148,12 +148,14 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
             start_voice_thread(voice_thread)
             mic.toggle_microphone()
-            adapter.q_speech.put([names[0],"ごめんなさい、うまく聞き取れませんでした。"])
+            adapter.q_speech.put([names[0],"ごめんなさい、うまく聞き取れませんでした。もう一度お願いします。"])
             adapter.q_speech.put(["*chatend*","*signal*"])
             tn_masaru.write(b"7\n")
             tn_kiyoko.write(b"s\n")                        
             tn_takashi.write(b"r\n")
-            voice_thread.join()
+            if voice_thread.is_alive():
+                voice_thread.join()
+            print("quiet mic on")
             mic.toggle_microphone()
 
         if audio.talkend_event.is_set() or mic.quiet_event.is_set():
