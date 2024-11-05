@@ -36,6 +36,7 @@ class WhisperMic:
         self.english = english
         self.keyboard = pynput.keyboard.Controller()
         self.micend_event = threading.Event()
+        self.quiet_event = threading.Event()
 
         self.platform = platform.system().lower()
         if self.platform == "darwin":
@@ -240,13 +241,15 @@ class WhisperMic:
                 result = self.result_queue.get()
                 if result is None and try_again:
                     self.logger.info("Too quiet, listening again...")
+                    self.quiet_event.set()
+                    print(f"quietflag is {self.quiet_event.is_set()}")
                     result = self.listen(timeout=timeout, phrase_time_limit=phrase_time_limit,try_again=True)
                     return result
                 else:
                     print("a")
                     return result
 
-
+    """
     # This method is similar to the listen() method, but it has the ability to listen for a specified duration, mentioned in the "duration" parameter.
     def record(self, duration=2, offset=None,try_again=True):
         self.logger.info("Listening...")
@@ -262,7 +265,7 @@ class WhisperMic:
                     result = self.record(duration=duration, offset=offset,try_again=True)
                     return result
                 else:
-                    return result
+                    return result"""
 
 
     def toggle_microphone(self) -> None:

@@ -50,73 +50,73 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
             
             print(f"→→→→→→{val}←←←←←")
             try:
+                
+                if val[0] == "たかこ":
                     
-                    if val[0] == "たかこ":
-                        
-                        if val[1] == "joy":
-                            tn_takashi.write(b"6\n")
-                        elif val[1] == "question":                            
-                            tn_takashi.write(b"7\n")
-                        elif val[1] == "interest":                            
-                            tn_takashi.write(b"8\n")
-                        elif val[1] == "surprise":                           
-                            tn_takashi.write(b"9\n")
-                        else:
-                            tn_takashi.write(b"8\n")
+                    if val[1] == "joy":
+                        tn_takashi.write(b"6\n")
+                    elif val[1] == "question":                            
+                        tn_takashi.write(b"7\n")
+                    elif val[1] == "interest":                            
+                        tn_takashi.write(b"8\n")
+                    elif val[1] == "surprise":                           
+                        tn_takashi.write(b"9\n")
+                    else:
+                        tn_takashi.write(b"8\n")
 
-                        time.sleep(1.5)
-                        tn_masaru.write(b"l\n")
-                        tn_kiyoko.write(b"r\n")
-                        
+                    time.sleep(1.5)
+                    tn_masaru.write(b"l\n")
+                    tn_kiyoko.write(b"r\n")
                     
+                
 
 
-                    if val[0] == "きよこ":
-                        
-                        if val[1] == "joy":
-                            print("喜び")
-                            tn_kiyoko.write(b"6\n")
-                        elif val[1] == "question":
-                            print("疑問")
-                            tn_kiyoko.write(b"7\n")
-                        elif val[1] == "interest":
-                            print("興味")
-                            tn_kiyoko.write(b"8\n")
-                        elif val[1] == "surprise":
-                            print("驚き")
-                            tn_kiyoko.write(b"9\n")
-                        else:
-                            tn_kiyoko.write(b"8\n")
-
-                        time.sleep(1.5)
-                        tn_takashi.write(b"l\n")  
-                        tn_masaru.write(b"s\n")
-                  
+                if val[0] == "きよこ":
                     
+                    if val[1] == "joy":
+                        print("喜び")
+                        tn_kiyoko.write(b"6\n")
+                    elif val[1] == "question":
+                        print("疑問")
+                        tn_kiyoko.write(b"7\n")
+                    elif val[1] == "interest":
+                        print("興味")
+                        tn_kiyoko.write(b"8\n")
+                    elif val[1] == "surprise":
+                        print("驚き")
+                        tn_kiyoko.write(b"9\n")
+                    else:
+                        tn_kiyoko.write(b"8\n")
+
+                    time.sleep(1.5)
+                    tn_takashi.write(b"l\n")  
+                    tn_masaru.write(b"s\n")
+                
+                
+                
+                if val[0] == "まさる":
                     
-                    if val[0] == "まさる":
-                       
-                        if val[1] == "joy":
-                            print("喜び")
-                            tn_masaru.write(b"6\n")
-                        elif val[1] == "question":
-                            print("疑問")
-                            tn_masaru.write(b"7\n")
-                        elif val[1] == "interest":
-                            print("興味")
-                            tn_masaru.write(b"8\n")
-                        elif val[1] == "surprise":
-                            print("驚き")
-                            tn_masaru.write(b"9\n")    
-                        else:
-                            tn_masaru.write(b"8\n")                    
-                        
-                        time.sleep(1.5)
-                        tn_kiyoko.write(b"s\n")                        
-                        tn_takashi.write(b"r\n")
+                    if val[1] == "joy":
+                        print("喜び")
+                        tn_masaru.write(b"6\n")
+                    elif val[1] == "question":
+                        print("疑問")
+                        tn_masaru.write(b"7\n")
+                    elif val[1] == "interest":
+                        print("興味")
+                        tn_masaru.write(b"8\n")
+                    elif val[1] == "surprise":
+                        print("驚き")
+                        tn_masaru.write(b"9\n")    
+                    else:
+                        tn_masaru.write(b"8\n")                    
+                    
+                    time.sleep(1.5)
+                    tn_kiyoko.write(b"s\n")                        
+                    tn_takashi.write(b"r\n")
 
 
-                    audio.change_event.clear()
+                audio.change_event.clear()
 
                     # time.sleep(5)    
             except ConnectionRefusedError:
@@ -129,34 +129,43 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
         else:
             # print("pass talker change")
             pass
-   
-        if audio.talkend_event.is_set():
- 
+
+        if mic.micend_event.is_set():
+            wait_takashi = random.randint(10,11)
+            tn_takashi.write(f"{wait_takashi}\n".encode('utf-8'))
+            wait_masaru = random.randint(10,11)
+            tn_masaru.write(f"{wait_masaru}\n".encode('utf-8'))
+            wait_kiyoko = random.randint(10,11)
+            tn_kiyoko.write(f"{wait_kiyoko}\n".encode('utf-8'))
+
+            # for tn in [tn_takashi,tn_masaru,tn_kiyoko]:
+            #     tn.write(b"s\n")
+            mic.micend_event.clear()
+
+        
+        if mic.quiet_event.is_set():
+            print("quiet")
+            voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
+            start_voice_thread(voice_thread)
+            mic.toggle_microphone()
+            adapter.q_speech.put([names[0],"ごめんなさい、うまく聞き取れませんでした。"])
+            adapter.q_speech.put(["*chatend*","*signal*"])
+            tn_masaru.write(b"7\n")
+            tn_kiyoko.write(b"s\n")                        
+            tn_takashi.write(b"r\n")
+            voice_thread.join()
+            mic.toggle_microphone()
+
+        if audio.talkend_event.is_set() or mic.quiet_event.is_set():
+            print("human turn")
             # time.sleep(1.5)
             tn_masaru.write(b"human_r\n")
             tn_kiyoko.write(b"human_l\n")
             tn_takashi.write(b"s\n")
 
             audio.talkend_event.clear()
-
-def talk_robot(tn_masaru,tn_kiyoko,tn_takashi):
-    mic.micend_event.wait()
-    print("abc")
-    try:
-        tn_kiyoko.write(b"s\n")
-        tn_masaru.write(b"s\n")
-        tn_takashi.write(b"s\n")
-    except ConnectionRefusedError:
-            print("接続が拒否されました")
-    except TimeoutError:
-        print("接続がタイムアウトしました")
-    except Exception as e:
-        print(f"Telnet不良: {str(e)}")
-    finally:
-        print("micendevent is cleared")
-        mic.micend_event.clear()
-    
-    
+            mic.quiet_event.clear()
+        
 
 
 if __name__ == "__main__":
@@ -281,7 +290,7 @@ if __name__ == "__main__":
 
     while True:
         if args.mic:
-            threading.Thread(target=talk_robot, args=(tn_masaru,tn_kiyoko,tn_takashi,), daemon=True).start()
+            # threading.Thread(target=talk_robot, args=(tn_masaru,tn_kiyoko,tn_takashi,), daemon=True).start()
             mic.toggle_microphone()
             user_input = mic.listen()    #
             mic.toggle_microphone()

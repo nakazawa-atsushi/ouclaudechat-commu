@@ -39,6 +39,8 @@ class play_voicebox:
                     print("voice end")
                     self.voiceend_flag = True
                     audio_t.join()  #音声再生が終了するまでストップ
+                    self.talkend_event.set()    #robotgesture用のイベント
+                    print(f"talkeventflag is {self.talkend_event.is_set()}")
                     self.talkstart_flag = False
                     return
                 voicetype = self.name_conversion(name)
@@ -120,7 +122,6 @@ class play_voicebox:
             except queue.Empty:
                 if self.voiceend_flag:  #もし音声合成がすべて終了した後にq.audio(queue)が空なら，音声再生も終わったと判断する
                     print("def audioplay return")
-                    self.talkend_event.set()    #robotgesture用のイベント
                     self.voiceend_flag = False  #flagを元に戻してからreturn
                     return
                 time.sleep(0.1)
