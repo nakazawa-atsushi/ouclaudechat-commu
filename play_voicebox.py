@@ -16,6 +16,8 @@ class play_voicebox:
         self.change_event = threading.Event()
         self.talkend_event = threading.Event()
         self.talkstart_flag = False
+        self.nod_event = threading.Event()
+        self.nod_event.set()
 
     def monitor(self, x:queue):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
@@ -118,6 +120,7 @@ class play_voicebox:
     def audio_play(self):
         while True:
             try:
+                self.nod_event.wait()
                 voice = self.q_audio.get_nowait()
             except queue.Empty:
                 if self.voiceend_flag:  #もし音声合成がすべて終了した後にq.audio(queue)が空なら，音声再生も終わったと判断する

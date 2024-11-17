@@ -44,7 +44,29 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
     tn_kiyoko.write(b"h=" + h_angle_str.encode('utf-8') + b"\n")
     tn_masaru.write(b"h=" + h_angle_str.encode('utf-8') + b"\n")
     while(True):
-        audio.change_event.wait(timeout=0.5)
+        audio.change_event.wait(timeout=0.1)
+
+        if mic.micend_event.is_set():
+            while True:
+                # for tn in [tn_takashi,tn_masaru,tn_kiyoko]:
+                if audio.change_event.is_set():
+                    print("nod break")
+                    break
+                audio.nod_event.clear()
+                # tn = random.choice([tn_takashi,tn_masaru,tn_kiyoko])
+                tn = random.choice(range(1,4))
+                if tn == 1:
+                    tn_masaru.write(b"nod_r\n")
+                elif tn == 2:
+                    tn_takashi.write(b"nod\n")
+                elif tn == 3:
+                    tn_kiyoko.write(b"nod_l\n")
+                print("sleep before")
+                time.sleep(2.5)
+            audio.nod_event.set()
+
+            mic.micend_event.clear()
+
         if audio.change_event.is_set():
             val = x.get()
             
@@ -115,9 +137,8 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
                     tn_kiyoko.write(b"s\n")                        
                     tn_takashi.write(b"r\n")
 
-
                 audio.change_event.clear()
-
+                
                     # time.sleep(5)    
             except ConnectionRefusedError:
                 print("接続が拒否されました")
@@ -130,35 +151,20 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
             # print("pass talker change")
             pass
 
-        if mic.micend_event.is_set():
-            wait_takashi = random.randint(10,11)
-            tn_takashi.write(f"{wait_takashi}\n".encode('utf-8'))
-            wait_masaru = random.randint(10,11)
-            tn_masaru.write(f"{wait_masaru}\n".encode('utf-8'))
-            wait_kiyoko = random.randint(10,11)
-            tn_kiyoko.write(f"{wait_kiyoko}\n".encode('utf-8'))
+        # if mic.micend_event.is_set():
+        #     wait_takashi = random.randint(10,11)
+        #     tn_takashi.write(f"{wait_takashi}\n".encode('utf-8'))
+        #     wait_masaru = random.randint(10,11)
+        #     tn_masaru.write(f"{wait_masaru}\n".encode('utf-8'))
+        #     wait_kiyoko = random.randint(10,11)
+        #     tn_kiyoko.write(f"{wait_kiyoko}\n".encode('utf-8'))
 
             # for tn in [tn_takashi,tn_masaru,tn_kiyoko]:
             #     tn.write(b"s\n")
-            mic.micend_event.clear()
 
         
-        if mic.quiet_event.is_set():
-            print("quiet")
-            voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
-            start_voice_thread(voice_thread)
-            mic.toggle_microphone()
-            adapter.q_speech.put([names[0],"ごめんなさい、うまく聞き取れませんでした。もう一度お願いします。"])
-            adapter.q_speech.put(["*chatend*","*signal*"])
-            tn_masaru.write(b"7\n")
-            tn_kiyoko.write(b"s\n")                        
-            tn_takashi.write(b"r\n")
-            if voice_thread.is_alive():
-                voice_thread.join()
-            print("quiet mic on")
-            mic.toggle_microphone()
 
-        if audio.talkend_event.is_set() or mic.quiet_event.is_set():
+        if audio.talkend_event.is_set():
             print("human turn")
             # time.sleep(1.5)
             tn_masaru.write(b"human_r\n")
@@ -166,9 +172,7 @@ def robot_gesture(x,tn_masaru,tn_kiyoko,tn_takashi,edison_angle_str,pi_angle_str
             tn_takashi.write(b"s\n")
 
             audio.talkend_event.clear()
-            mic.quiet_event.clear()
         
-
 
 if __name__ == "__main__":
 
@@ -206,7 +210,7 @@ if __name__ == "__main__":
     extract = introduce.extract_name()
     
     try:
-        mic = WhisperMic(pause=1.2) if args.mic else None
+        mic = WhisperMic(pause=1.5,energy=200,dynamic_energy=False) if args.mic else None
     except AssertionError as e:
         print(f"AsserionError: {e}")
         print("テキスト入力でプログラムを実行します")
@@ -290,20 +294,35 @@ if __name__ == "__main__":
         tn_takashi.write(b"s\n")
 
 
+
+
     while True:
         if args.mic:
             # threading.Thread(target=talk_robot, args=(tn_masaru,tn_kiyoko,tn_takashi,), daemon=True).start()
             mic.toggle_microphone()
-            user_input = mic.listen()    #
+            user_input = mic.listen(try_again=False)  #
             mic.toggle_microphone()
-            print("You said: " + user_input)
+            if user_input != None:
+                print("You said: " + user_input)
         else:
             user_input = input("message: ")
             if user_input == "":
                 print("文字を入力してください")
                 continue
             
-            
+
+        if user_input == None:
+            print("ごめんなさい、聞き取れなかったので、もう一度お願いします。")
+            voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,), daemon=True)
+            start_voice_thread(voice_thread)
+            adapter.q_speech.put([names[0],"ごめんなさい、聞き取れなかったので、もう一度お願いします。"])
+            adapter.q_behavior.put([names[0],"question"])
+            adapter.q_speech.put(["*chatend*","*signal*"])
+            audio.change_event.set()
+            if voice_thread.is_alive():
+                voice_thread.join()
+            continue
+
         
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
         end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ","사요나라","사요 나라","사연하라","Sådär då"]

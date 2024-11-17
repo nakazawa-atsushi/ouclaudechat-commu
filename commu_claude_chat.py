@@ -54,7 +54,7 @@ class CommuClaudeChat:
         self.system_prompt += f'名前は行頭に[]で表記してください．'
         self.system_prompt += f'それに続き発言者の感情を(joy)(question)(interest)(surprise)から選んで答えてください．'
         # self.system_prompt += "感情を表すとき以外に()は使用しないでください"
-        self.system_prompt += f'各人物の発言はできるだけ200字以内にしてください．'
+        self.system_prompt += f'各人物の発言はできるだけ100字以内にしてください．'
         self.system_prompt += f'文章の終わりは必ず句読点で終わるようにしてください．'
 
         # ART VIEW CONVタスクの場合は画像を読み込んで，messagesの先頭に追加する
@@ -173,11 +173,12 @@ class CommuClaudeChat:
         system += f"グループ会話には{','.join(self.names)}のメンバーが参加し、それぞれ一度だけ発言します。"
         system += f"出力中に「{','.join(self.names)}」は一度だけ発言を許可します"
         system += f"{','.join(self.names)}はランダムな順番で話してください"
-        system += f"会話の最後に、最後に話した人がユーザー（{self.username}）の名前を呼び、次の発言を促してください。"
+        system += f"会話の最後に、最後に話した人がユーザー（{self.username}）の名前を呼び、ユーザーについての質問をしてください"
+        system += f"最後に話した人以外は、ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
         system += "ユーザーに向けての質問は1度だけにしなさい"
-        system += "直前の人の発言に必ず返答してください。"
-        system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
-        system += f"ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
+        system += "直前の人の発言を補足してください"
+        # system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
+        
         
         """
         system += f'{",".join(self.names)}はグループで会話をしています．'
