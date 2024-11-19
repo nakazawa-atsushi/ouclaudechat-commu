@@ -46,7 +46,10 @@ class CommuClaudeChat:
             print("art")
             self.system_prompt += f'{",".join(names)}はアートコミュニケーションの会話をしています．'
             for name,personality in zip(names,personalities):
-                self.system_prompt += f'{name}は{personality}です．'            
+                self.system_prompt += f'{name}は{personality}です．'
+        elif self.task == "shikata":
+            self.system_prompt += f"{names[0]}は地震の後，顔色が優れないところを医療者であるユーザーに声をかけられました．"
+        
         else:
             self.system_prompt += f'{",".join(names)}は通常の会話をしています．'
         
@@ -91,6 +94,18 @@ class CommuClaudeChat:
                         self.system_prompt += l
                     except Exception as e:
                         print("cannot open file:", fname)
+        
+        if self.task == "shikata":
+            with open(os.path.join("prompt1.txt"),"r",encoding="utf-8") as f:
+                try:
+                    prompt = f.read()
+                    prompt = prompt.replace("{name}",names[0])
+                    self.system_prompt += prompt
+                except Exception as e:
+                    print("cannot open file:", fname)
+            
+        
+
                         
         
     def add_experience(self,attributes):
@@ -177,7 +192,13 @@ class CommuClaudeChat:
         system += f"最後に話した人以外は、ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
         system += "ユーザーに向けての質問は1度だけにしなさい"
         system += "直前の人の発言を補足してください"
+        self.create_chat(user_message,system)
         # system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
+        
+    def shikata_conversation(self,user_message):
+        system = self.system_prompt
+        system += "最後を...で終了しないでください"
+        self.create_chat(user_message,system)
         
         
         """
@@ -189,7 +210,7 @@ class CommuClaudeChat:
         system += f'{",".join(self.names)}はお互いに話しかけあってください'
         system += f"最後の促し以外はユーザーに話しかけないでください"
         """
-        self.create_chat(user_message,system)
+        
         
         
     def writelog(self,val):

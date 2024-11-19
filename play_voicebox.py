@@ -19,7 +19,7 @@ class play_voicebox:
         self.nod_event = threading.Event()
         self.nod_event.set()
 
-    def monitor(self, x:queue):
+    def monitor(self, x:queue, namelist):
         audio_t = threading.Thread(target=self.audio_play, daemon=True)
         audio_t.start()
         print("Thread start")
@@ -45,7 +45,8 @@ class play_voicebox:
                     print(f"talkeventflag is {self.talkend_event.is_set()}")
                     self.talkstart_flag = False
                     return
-                voicetype = self.name_conversion(name)
+                voicetype = self.name_conversion(name,namelist)
+                
                 delay_flag = False
                 if not memory_voicetype:
                     memory_voicetype = voicetype
@@ -58,16 +59,16 @@ class play_voicebox:
                 
                 
 
-    def name_conversion(self,name):
+    def name_conversion(self,name,namelist):
         #http://localhost:50021/speakers voicevox起動中にアクセスするとspeaker一覧にアクセスできる
-        if name == "まさる":
+        if name == namelist[1]: #まさる
             voice_type = 11
             #2は四国メタン、11は玄野武宏
-        elif name == "きよこ":
+        elif name == namelist[2]:   #きよこ
             voice_type = 46
             # 小夜
             # 雨晴はう 10
-        elif name == "たかこ":
+        elif name == namelist[0]:   #たかこorたかし
             voice_type = 20
             # もち子さん
         else:
