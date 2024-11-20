@@ -48,7 +48,7 @@ class CommuClaudeChat:
             for name,personality in zip(names,personalities):
                 self.system_prompt += f'{name}は{personality}です．'
         elif self.task == "shikata":
-            self.system_prompt += f"{names[0]}は地震の後，顔色が優れないところを医療者であるユーザーに声をかけられました．"
+            self.system_prompt += f"{names[0]}は地震の後，薬をもらいに薬局に来たところ、医療者であるユーザーに声をかけられました．"
         
         else:
             self.system_prompt += f'{",".join(names)}は通常の会話をしています．'
@@ -197,7 +197,7 @@ class CommuClaudeChat:
         
     def shikata_conversation(self,user_message):
         system = self.system_prompt
-        system += "最後を...で終了しないでください"
+        system += "落ち込みの...を出力しないでください"
         self.create_chat(user_message,system)
         
         

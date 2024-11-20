@@ -113,6 +113,9 @@ class WhisperMic:
     def is_audio_loud_enough(self, frame) -> bool:
         audio_frame = np.frombuffer(frame, dtype=np.int16)
         amplitude = np.mean(np.abs(audio_frame))
+
+        self.amplitude = amplitude
+
         return amplitude > self.hallucinate_threshold
 
     
@@ -127,6 +130,11 @@ class WhisperMic:
 
         data = sr.AudioData(audio,16000,2)
         data = data.get_raw_data()
+        #print(type(data))
+        audio_frame = np.frombuffer(data, dtype=np.int16)
+        amplitude = np.mean(np.abs(audio_frame))
+        print("average sound signal total:", amplitude)
+        
         return data
     
 
@@ -158,8 +166,10 @@ class WhisperMic:
 
     # This method takes the recorded audio data, converts it into raw format and stores it in a queue. 
     def __record_load(self,_, audio: sr.AudioData) -> None:
-        print("f")
+        # print("f")
         data = audio.get_raw_data()
+        #audio_frame = np.frombuffer(data, dtype=np.int16)
+        #print("     sound signal:", np.mean(np.abs(audio_frame)))
         self.audio_queue.put_nowait(data)
 
 

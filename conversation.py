@@ -82,11 +82,11 @@ def robot_gesture(x, tn_masaru, tn_kiyoko, tn_takashi, edison_angle_str, pi_angl
                     print("nod break")
                     break
                 audio.nod_event.clear()
-                tn = random.choice(range(1, 4))
+                tn = random.choice(range(1, 4-names.count("")))
                 if tn == 1:
-                    robot_write(tn_masaru, b"nod_r\n")
-                elif tn == 2:
                     robot_write(tn_takashi, b"nod\n")
+                elif tn == 2:
+                    robot_write(tn_masaru, b"nod_r\n")
                 elif tn == 3:
                     robot_write(tn_kiyoko, b"nod_l\n")
                 print("sleep before")
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     print(args)
     
     convend_flag = False
-    robots_number = 3
+    robots_number = 2
     if args.task == "shikata":
         robots_number = 1
 
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     extract = introduce.extract_name()
     
     try:
-        mic = WhisperMic(pause=1.5,energy=200,dynamic_energy=False) if args.mic else None
+        mic = WhisperMic(pause=1.5,energy=200,dynamic_energy=True,hallucinate_threshold=100) if args.mic else None
     except AssertionError as e:
         print(f"AsserionError: {e}")
         print("テキスト入力でプログラムを実行します")
@@ -349,8 +349,20 @@ if __name__ == "__main__":
             if user_input == "":
                 print("文字を入力してください")
                 continue
-        
-        # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
+
+        if user_input == None:
+            print("ごめんなさい、聞き取れなかったので、もう一度お願いします。")
+            if args.voice:
+                voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,names), daemon=True)
+                start_voice_thread(voice_thread)
+                adapter.q_speech.put([names[0],"ごめんなさい、聞き取れなかったので、もう一度お願いします。"])
+                adapter.q_behavior.put([names[0],"question"])
+                adapter.q_speech.put(["*chatend*","*signal*"])
+                audio.change_event.set()
+                if voice_thread.is_alive():
+                    voice_thread.join()
+                continue
+
         end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ","사요나라","사요 나라","사연하라","Sådär då","sayonara","sayounara"]
         for end_word in end_words:
             if end_word in user_input.lower():
@@ -358,6 +370,7 @@ if __name__ == "__main__":
                 if not args.voice:
                     sys.exit(0)
                 convend_flag = True
+
 
         if args.voice:  # -vフラグが立っていればvoice start
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,names), daemon=True)
@@ -377,16 +390,14 @@ if __name__ == "__main__":
                     # tn_kiyoko.write(b"s\n")
                     # tn_takashi.write(b"s\n")
                 break
-        if user_input == None:
-            print("ごめんなさい、聞き取れなかったので、もう一度お願いします。")
-            if args.voice:
-                adapter.q_speech.put([names[0],"ごめんなさい、聞き取れなかったので、もう一度お願いします。"])
-                adapter.q_behavior.put([names[0],"question"])
-                adapter.q_speech.put(["*chatend*","*signal*"])
-                audio.change_event.set()
-                if voice_thread.is_alive():
-                    voice_thread.join()
-            continue
+ 
+
+
+        
+
+        # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
+
+
 
         if args.introduce:
             user, reason = extract.extract_claude(user_input)
