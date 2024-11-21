@@ -37,6 +37,8 @@ class WhisperMic:
         self.keyboard = pynput.keyboard.Controller()
         self.micend_event = threading.Event()
         self.quiet_event = threading.Event()
+        # appended for monitoring purpose by nkzw
+        self.current_audio_amplitude = 0
 
         self.platform = platform.system().lower()
         if self.platform == "darwin":
@@ -113,7 +115,6 @@ class WhisperMic:
     def is_audio_loud_enough(self, frame) -> bool:
         audio_frame = np.frombuffer(frame, dtype=np.int16)
         amplitude = np.mean(np.abs(audio_frame))
-
         self.amplitude = amplitude
 
         return amplitude > self.hallucinate_threshold
@@ -128,15 +129,14 @@ class WhisperMic:
                 audio += self.audio_queue.get()
                 got_audio = True
 
-        data = sr.AudioData(audio,16000,2)
+        data = sr.AudioData(audio, 16000, 2)
         data = data.get_raw_data()
         #print(type(data))
         audio_frame = np.frombuffer(data, dtype=np.int16)
-        amplitude = np.mean(np.abs(audio_frame))
-        print("average sound signal total:", amplitude)
+        self.current_audio_amplitude = np.mean(np.abs(audio_frame))
+        # print("average sound signal total:", amplitude)
         
         return data
-    
 
     # Handles the task of getting the audio input via microphone. This method has been used for listen() method
     def __listen_handler(self, timeout, phrase_time_limit):
@@ -166,7 +166,6 @@ class WhisperMic:
 
     # This method takes the recorded audio data, converts it into raw format and stores it in a queue. 
     def __record_load(self,_, audio: sr.AudioData) -> None:
-        # print("f")
         data = audio.get_raw_data()
         #audio_frame = np.frombuffer(data, dtype=np.int16)
         #print("     sound signal:", np.mean(np.abs(audio_frame)))
@@ -178,7 +177,6 @@ class WhisperMic:
             if self.break_threads:
                 break
             self.__transcribe()
-
 
     def __transcribe(self,data=None, realtime: bool = False) -> None:
         if data is None:
@@ -223,7 +221,6 @@ class WhisperMic:
             else:
                 yield result
 
-
     def listen_loop(self, dictate: bool = False, phrase_time_limit=None) -> None:
         for result in self.listen_continuously(phrase_time_limit=phrase_time_limit):
             if result is not None:
@@ -231,7 +228,6 @@ class WhisperMic:
                     self.keyboard.type(result)
                 else:
                     print(result)
-
 
     def listen_continuously(self, phrase_time_limit=None):
         self.recorder.listen_in_background(self.source, self.__record_load, phrase_time_limit=phrase_time_limit)
@@ -241,7 +237,6 @@ class WhisperMic:
         while True:
             yield self.result_queue.get()
 
-            
     def listen(self, timeout = None, phrase_time_limit=None,try_again=True):
         print("Listening now")
         self.logger.info("Listening...")
@@ -256,7 +251,7 @@ class WhisperMic:
                     result = self.listen(timeout=timeout, phrase_time_limit=phrase_time_limit,try_again=True)
                     return result
                 else:
-                    print("a")
+                    # print("a")
                     return result
 
     """
