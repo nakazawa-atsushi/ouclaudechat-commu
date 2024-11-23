@@ -22,6 +22,8 @@ dotenv.load_dotenv()
 
 # global variable to access from window processing
 mic = None
+audio = None
+adapter = None
 
 
 def start_voice_thread(voice_t:threading):
@@ -70,6 +72,9 @@ def connect_robot(ip,commnad):
     """
 
 def robot_gesture(x, tn_masaru, tn_kiyoko, tn_takashi, edison_angle_str, pi_angle_str, h_angle_str, names):
+    global audio
+    global mic
+    
     print("Thread start")
     print(x)
     print(x.empty())
@@ -178,8 +183,21 @@ def robot_gesture(x, tn_masaru, tn_kiyoko, tn_takashi, edison_angle_str, pi_angl
             robot_write(tn_takashi, b"s\n")
             audio.talkend_event.clear()
 
+def robot_conv(names, voice_thread:threading, word, emo):
+    global adapter
+    global audio
+    
+    adapter.q_speech.put([names[0],word])
+    adapter.q_behavior.put([names[0],emo])
+    adapter.q_speech.put(["*chatend*","*signal*"])
+    audio.change_event.set()
+    if voice_thread.is_alive():
+        voice_thread.join() 
+
 def mainloop():
     global mic
+    global audio
+    global adapter
 
     # コマンドライン引数を解釈する
     parser = argparse.ArgumentParser()
@@ -328,47 +346,36 @@ def mainloop():
             if user_input == "":
                 print("文字を入力してください")
                 continue
+        
+        if args.voice:  # -vフラグが立っていればvoice start
+            voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,names), daemon=True)
+            start_voice_thread(voice_thread)
+
 
         if user_input == None:
             print("ごめんなさい、聞き取れなかったので、もう一度お願いします。")
             if args.voice:
-                voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,names), daemon=True)
-                start_voice_thread(voice_thread)
-                adapter.q_speech.put([names[0],"ごめんなさい、聞き取れなかったので、もう一度お願いします。"])
-                adapter.q_behavior.put([names[0],"question"])
-                adapter.q_speech.put(["*chatend*","*signal*"])
-                audio.change_event.set()
-                if voice_thread.is_alive():
-                    voice_thread.join()
+                robot_conv(names, voice_thread, 
+                           "ごめんなさい、聞き取れなかったので、もう一度お願いします。", 
+                           "question")
                 continue
 
         end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ","사요나라","사요 나라","사연하라","Sådär då","sayonara","sayounara"]
         for end_word in end_words:
             if end_word in user_input.lower():
                 print("ありがとうございました．またお会いしましょう.")
-                if not args.voice:
-                    sys.exit(0)
-                convend_flag = True
-
-        if args.voice:  # -vフラグが立っていればvoice start
-            voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,names), daemon=True)
-            start_voice_thread(voice_thread)
-            if convend_flag:
-                adapter.q_speech.put([names[0],"ありがとうございました．またお会いしましょう."])
-                adapter.q_behavior.put([names[0],"joy"])
-                adapter.q_speech.put(["*chatend*","*signal*"])
-                audio.change_event.set()
-                voice_thread.join()
+                if args.voice:
+                    robot_conv(names, voice_thread, 
+                               "ありがとうございました．またお会いしましょう.", 
+                               "joy")
                 if args.gesture:
                     robot_write(tn_masaru,b"s\n")
                     robot_write(tn_kiyoko,b"s\n")
                     robot_write(tn_takashi,b"s\n")                    
-                    # tn_masaru.write(b"s\n")
-                    # tn_kiyoko.write(b"s\n")
-                    # tn_takashi.write(b"s\n")
-                break
+                sys.exit(0)
 
         # if user_input.lower() == "quit" or user_input == "くいｔ" or user_input == "終了" or user_input == "さようなら":s
+        """
         if args.introduce:
             user, reason = extract.extract_claude(user_input)
             if not reason == "tool_use":
@@ -382,7 +389,8 @@ def mainloop():
                         voice_thread.join() 
                 continue
             adapter.set_username(user)
-            args.introduce = False                
+            args.introduce = False   
+            """             
 
         if args.task == "shikata":
             res = adapter.shikata_conversation(user_input)
