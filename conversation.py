@@ -183,16 +183,16 @@ def robot_gesture(x, tn_masaru, tn_kiyoko, tn_takashi, edison_angle_str, pi_angl
             robot_write(tn_takashi, b"s\n")
             audio.talkend_event.clear()
 
-def robot_conv(names, voice_thread:threading, word, emo):
+def robot_conv(args_voice:bool, names, voice_thread:threading, word, emo):
     global adapter
     global audio
-    
-    adapter.q_speech.put([names[0],word])
-    adapter.q_behavior.put([names[0],emo])
-    adapter.q_speech.put(["*chatend*","*signal*"])
-    audio.change_event.set()
-    if voice_thread.is_alive():
-        voice_thread.join() 
+    if args_voice:
+        adapter.q_speech.put([names[0],word])
+        adapter.q_behavior.put([names[0],emo])
+        adapter.q_speech.put(["*chatend*","*signal*"])
+        audio.change_event.set()
+        if voice_thread.is_alive():
+            voice_thread.join() 
 
 def mainloop():
     global mic
@@ -218,7 +218,7 @@ def mainloop():
     args = parser.parse_args()
     
     convend_flag = False
-    robots_number = 2
+    robots_number = 3
     if args.task == "shikata":
         robots_number = 1
 
@@ -334,11 +334,17 @@ def mainloop():
             # tn_kiyoko.write(b"human_l\n")
             # tn_takashi.write(b"s\n")
 
+
     while True:
         if args.mic:
-            mic.toggle_microphone()
+            # mic.toggle_microphone()
+            # user_input = mic.listen(try_again=False)
+            # mic.toggle_microphone()
+            # mic.mic_active = True
+            # mic.mic_active = False
             user_input = mic.listen(try_again=False)
-            mic.toggle_microphone()
+            # mic.mic_active = False
+
             if user_input != None:
                 print("You said: " + user_input)
         else:
@@ -350,24 +356,24 @@ def mainloop():
         if args.voice:  # -vフラグが立っていればvoice start
             voice_thread = threading.Thread(target=audio.monitor, args=(adapter.q_speech,names), daemon=True)
             start_voice_thread(voice_thread)
+        else:
+            voice_thread = None
 
 
         if user_input == None:
             print("ごめんなさい、聞き取れなかったので、もう一度お願いします。")
-            if args.voice:
-                robot_conv(names, voice_thread, 
-                           "ごめんなさい、聞き取れなかったので、もう一度お願いします。", 
-                           "question")
-                continue
+            robot_conv(args.voice, names, voice_thread, 
+                        "ごめんなさい、聞き取れなかったので、もう一度お願いします。", 
+                        "question")
+            continue
 
-        end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ","사요나라","사요 나라","사연하라","Sådär då","sayonara","sayounara"]
+        end_words = ["quit","くいｔ","終了","さようなら","さよなら","サヨナラ","サヨウナラ","사요나라","사요 나라","사연하라","Sådär då","Söner då", "sayonara","sayounara"]
         for end_word in end_words:
             if end_word in user_input.lower():
                 print("ありがとうございました．またお会いしましょう.")
-                if args.voice:
-                    robot_conv(names, voice_thread, 
-                               "ありがとうございました．またお会いしましょう.", 
-                               "joy")
+                robot_conv(args.voice, names, voice_thread, 
+                            "ありがとうございました．またお会いしましょう.", 
+                            "joy")
                 if args.gesture:
                     robot_write(tn_masaru,b"s\n")
                     robot_write(tn_kiyoko,b"s\n")
@@ -415,7 +421,8 @@ def sg_status_update(window):
             energy = mic.energy
             denergy = mic.dynamic_energy
             hthresh = mic.hallucinate_threshold
-            window.write_event_value("EVAL_UPDATE", (True, amp, pause, energy, denergy, hthresh))
+            device = mic.mic_active
+            window.write_event_value("EVAL_UPDATE", (True, amp, pause, energy, denergy, hthresh, device))
         else:
             window.write_event_value("EVAL_UPDATE", (False, 0))
 
@@ -432,6 +439,7 @@ if __name__ == "__main__":
                 [sg.Text("Pause", size=(20,1)),  sg.Text("0", key="PAUSE", size=(10,1)),   sg.Slider((0.0, 5.0), orientation='horizontal', key="PAUSE_IN", enable_events=True)],
                 [sg.Text("Energy", size=(20,1)), sg.Text("0", key="ENERGY", size=(10,1)),  sg.Slider((0.0, 500), orientation='horizontal', key="ENERGY_IN", enable_events=True)],
                 [sg.Text("Hallucinate Thresh", size=(20,1)), sg.Text("0", key="HTHRESH", size=(10,1)), sg.Slider((0, 500), orientation='horizontal', key="HTHRESH_IN", enable_events=True)],
+                [sg.Text("Mic streaming", size=(20,1)), sg.Text("0", key="MICNOW", size=(10,1)),sg.Button("Manually turn off mic", key="MICOFF")],
                 [sg.Button("Set Default Parameters", key="SETDEFALUT")]]                                                
     window = sg.Window("CommU Conversation Control", layout, finalize=True)
 
@@ -454,12 +462,14 @@ if __name__ == "__main__":
                 energy = float(values["EVAL_UPDATE"][3])
                 #denergy = float(values["EVAL_UPDATE"][4])
                 hthresh = float(values["EVAL_UPDATE"][5])
+                device = bool(values["EVAL_UPDATE"][6])
                 
                 window["SOUND_LV"].update(value=f"{amp}")
                 window["PAUSE"].update(value=pause)
                 window["ENERGY"].update(value=energy)
                 #window["DENERGY"].update(value=denergy)
                 window["HTHRESH"].update(value=hthresh)
+                window["MICNOW"].update(value=device)
 
                 window["PAUSE_IN"].update(value=pause)
                 window["ENERGY_IN"].update(value=energy)
@@ -484,5 +494,16 @@ if __name__ == "__main__":
                 mic.energy = 200
                 mic.dynamic_energy = True
                 mic.hallucinate_threshold = 100
+                
+                window["PAUSE"].update(value=mic.pause)
+                window["PAUSE_IN"].update(value=mic.pause)
+                window["ENERGY"].update(value=mic.energy)
+                window["ENERGY_IN"].update(value=mic.energy)
+                window["HTHRESH"].update(value=mic.hallucinate_threshold)
+                window["HTHRESH_IN"].update(value=mic.hallucinate_threshold)
+        
+        if event == "MICOFF":
+            if mic is not None:
+                mic.toggle_microphone()
 
     window.close()
