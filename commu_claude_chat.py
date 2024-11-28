@@ -17,7 +17,7 @@ class CommuClaudeChat:
         self.target_img = None
         self.mode = "art"
         self.nconv = 0
-        self.username = "user"
+        self.username = "ユーザー"
         self.streaming = True
         self.exnumber = 0
         self.names = []
@@ -184,14 +184,21 @@ class CommuClaudeChat:
         self.create_chat(user_message,system)
     
     def main_conversation(self,user_message):
-        system = self.system_prompt
-        system += f"グループ会話には{','.join(self.names)}のメンバーが参加し、それぞれ一度だけ発言します。"
-        system += f"出力中に「{','.join(self.names)}」は一度だけ発言を許可します"
-        system += f"{','.join(self.names)}はランダムな順番で話してください"
-        system += f"会話の最後に、最後に話した人がユーザー（{self.username}）の名前を呼び、ユーザーについての質問をしてください"
-        system += f"最後に話した人以外は、ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
-        system += "ユーザーに向けての質問は1度だけにしなさい"
-        system += "直前の人の発言を補足してください"
+        if self.names[1] == "" and self.names[2] == "":
+            system = self.system_prompt
+            system += f"{self.names[0]}はユーザーと話しています。"
+            system += f"会話の最後にユーザーの名前を呼び、ユーザーについての質問をしてください"
+            system += "ユーザーの名前がわからない"
+            system += "出力は150文字以内にしてください"
+        else:
+            system = self.system_prompt
+            system += f"グループ会話には{','.join(self.names)}のメンバーが参加し、それぞれ一度だけ発言します。"
+            system += f"出力中に「{','.join(self.names)}」は一度だけ発言を許可します"
+            system += f"{','.join(self.names)}はランダムな順番で話してください"
+            system += f"会話の最後に、最後に話した人がユーザーの名前を呼び、ユーザーについての質問をしてください"
+            system += f"最後に話した人以外は、ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
+            system += "ユーザーに向けての質問は1度だけにしなさい"
+            system += "直前の人の発言を補足してください"
         self.create_chat(user_message,system)
         # system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
         

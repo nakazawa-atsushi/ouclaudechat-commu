@@ -35,10 +35,11 @@ class WhisperMic:
         self.verbose = verbose
         self.english = english
         self.keyboard = pynput.keyboard.Controller()
-        self.micend_event = threading.Event()
+        self.nod2_event = threading.Event()
         self.quiet_event = threading.Event()
         # appended for monitoring purpose by nkzw
         self.current_audio_amplitude = 0
+        self.audio_buffer = bytes()
 
         self.platform = platform.system().lower()
         if self.platform == "darwin":
@@ -83,6 +84,8 @@ class WhisperMic:
 
         self.banned_results = [""," ","\n",None]
 
+        self.measure_list = []
+
         if save_file:
             self.file = open("transcribed_text.txt", "w+", encoding="utf-8")
 
@@ -116,6 +119,7 @@ class WhisperMic:
         audio_frame = np.frombuffer(frame, dtype=np.int16)
         amplitude = np.mean(np.abs(audio_frame))
         self.amplitude = amplitude
+        # print(time.time()-self.time)
 
         return amplitude > self.hallucinate_threshold
 
@@ -124,52 +128,139 @@ class WhisperMic:
         audio = bytes()
         got_audio = False
         time_start = time.time()
+        complete_audio = bytes()
+        
         while not got_audio or time.time() - time_start < min_time:
             while not self.audio_queue.empty():
                 audio += self.audio_queue.get()
                 got_audio = True
-
+                # if self.is_audio_loud_enough(audio):
+                #     self.audio_buffer += audio
+                # else:
+                #     complete_audio = self.audio_buffer
+                self.audio_buffer += audio
+                self.measure_list.append(audio)
         data = sr.AudioData(audio, 16000, 2)
         data = data.get_raw_data()
         #print(type(data))
-        audio_frame = np.frombuffer(data, dtype=np.int16)
-        self.current_audio_amplitude = np.mean(np.abs(audio_frame))
         # print("average sound signal total:", amplitude)
         
         return data
-
-    # Handles the task of getting the audio input via microphone. This method has been used for listen() method
-    def __listen_handler(self, timeout, phrase_time_limit):
-        try:
-            with self.source as microphone:
-                audio = self.recorder.listen(source=microphone, timeout=timeout, phrase_time_limit=phrase_time_limit)
-            self.micend_event.set()
-            print("e")
-            self.__record_load(0, audio)
-            audio_data = self.__get_all_audio()
-            self.__transcribe(data=audio_data)
-        except sr.WaitTimeoutError:
-            self.result_queue.put_nowait("Timeout: No speech detected within the specified time.")
-        except sr.UnknownValueError:
-            self.result_queue.put_nowait("Speech recognition could not understand audio.")
-
-
-    # This method is similar to the __listen_handler() method but it has the added ability for recording the audio for a specified duration of time
-    def __record_handler(self, duration=2, offset=None):
-        with self.source as microphone:
-            audio = self.recorder.record(source=microphone, duration=duration, offset=offset)
-        
-        self.__record_load(0, audio)
-        audio_data = self.__get_all_audio()
-        self.__transcribe(data=audio_data)
-
-
-    # This method takes the recorded audio data, converts it into raw format and stores it in a queue. 
+    
     def __record_load(self,_, audio: sr.AudioData) -> None:
         data = audio.get_raw_data()
         #audio_frame = np.frombuffer(data, dtype=np.int16)
         #print("     sound signal:", np.mean(np.abs(audio_frame)))
+        audio_frame = np.frombuffer(data, dtype=np.int16)
+        self.current_audio_amplitude = np.mean(np.abs(audio_frame))
+
         self.audio_queue.put_nowait(data)
+        
+    # Handles the task of getting the audio input via microphone. This method has been used for listen() method
+
+       
+    def __listen_handler(self, timeout, phrase_time_limit):
+        speak_flag = False
+        is_audio_loud_enough = False
+        self.mic_active = True
+        self.audio_buffer = bytes()
+        while True:
+            try:
+                if not is_audio_loud_enough and speak_flag:
+                    print("automatically mic off")
+                    break
+                if not self.mic_active:
+                    print("manually mic off")
+                    break
+
+                print("a")
+                
+                with self.source as microphone:
+                    audio = self.recorder.listen(source=microphone, timeout=timeout, phrase_time_limit=phrase_time_limit)
+                    # if self.micend_event.is_set():
+                    #     self.logger.info("Microphone input was forcefully stopped.")
+                    #     return
+                print("b")
+                
+                print("e")
+                self.__record_load(0, audio)
+                audio_data = self.__get_all_audio()
+                self.time = time.time()
+                is_audio_loud_enough = self.is_audio_loud_enough(audio_data)
+                # is_audio_loud_enough = self.is_audio_loud_enough(audio_data)
+                
+
+                print(f"is_audio_loud_enough: {is_audio_loud_enough}")
+                print("current_audio_amplitude", self.current_audio_amplitude)
+                if is_audio_loud_enough:
+                    speak_flag = True
+                    print("ユーザーが話し始めましたor話し中です")
+                print(f"speak flag: {speak_flag}")
+
+                
+            except sr.WaitTimeoutError:
+                # self.result_queue.put_nowait("Timeout: No speech detected within the specified time.")
+                if not speak_flag:
+                    print("まだユーザは話していません")
+                    # continue
+                else:
+                    print("ユーザーが話し終わりました")
+                    break
+            except sr.UnknownValueError:
+                self.result_queue.put_nowait("Speech recognition could not understand audio.")
+        self.nod2_event.set()
+        self.mic_active = False
+        self.__transcribe(data=self.audio_buffer)  #data=audio_dataをdata=audio_bufferに変える
+
+    """ def __listen_handler(self, timeout, phrase_time_limit):
+        speak_flag = False
+        while True:
+            try:
+                print("a")
+                self.mic_active = True
+                with self.source as microphone:
+                    audio = self.recorder.listen(source=microphone, timeout=timeout, phrase_time_limit=phrase_time_limit)
+                    # if self.nod2_event.is_set():
+                    #     self.logger.info("Microphone input was forcefully stopped.")
+                    #     return
+                print("b")
+                
+                
+                self.__record_load(0, audio)
+                print("c")
+                audio_data = self.__get_all_audio()
+                print("d")
+                # self.time = time.time()
+                is_audio_loud_enough = self.is_audio_loud_enough(audio_data)
+                print("e")
+                if is_audio_loud_enough:
+                    speak_flag = True
+                if not is_audio_loud_enough and speak_flag:
+                    break
+                if not self.mic_active:
+                    break
+                
+            except sr.WaitTimeoutError:
+                self.result_queue.put_nowait("Timeout: No speech detected within the specified time.")
+            except sr.UnknownValueError:
+                self.result_queue.put_nowait("Speech recognition could not understand audio.")
+        self.nod2_event.set()
+        self.mic_active = False
+        self.__transcribe(data=audio_data)"""
+    
+
+
+    # This method is similar to the __listen_handler() method but it has the added ability for recording the audio for a specified duration of time
+    # def __record_handler(self, duration=2, offset=None):
+    #     with self.source as microphone:
+    #         audio = self.recorder.record(source=microphone, duration=duration, offset=offset)
+        
+    #     self.__record_load(0, audio)
+    #     audio_data = self.__get_all_audio()
+    #     self.__transcribe(data=audio_data)
+
+
+    # This method takes the recorded audio data, converts it into raw format and stores it in a queue. 
 
 
     def __transcribe_forever(self) -> None:
@@ -276,9 +367,21 @@ class WhisperMic:
     def toggle_microphone(self) -> None:
         #TO DO: make this work
         self.mic_active = not self.mic_active
-        if self.mic_active:
+        if self.mic_active: 
             print("Mic on")
         else:
             print("turning off mic")
             # self.mic_thread.join()
             print("Mic off")
+
+    
+    def stop_listening(self):
+        """途中で録音を停止するためのメソッド"""
+        self.stop_event.set()
+        self.logger.info("Stopped listening.")
+
+    def listen_with_interrupt(self, duration=5, phrase_time_limit=None):
+        """一定時間後に録音を停止"""
+        threading.Thread(target=self.listen, args=(None, phrase_time_limit), daemon=True).start()
+        self.stop_listening()
+        print("Listening interrupted")
