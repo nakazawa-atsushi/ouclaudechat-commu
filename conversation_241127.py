@@ -191,9 +191,16 @@ def robot_gesture(x, tn_masaru, tn_kiyoko, tn_takashi, edison_angle_str, pi_angl
         
         if audio.talkend_event.is_set():
             print("human turn")
-            robot_write(tn_masaru, b"human_r\n")
-            robot_write(tn_kiyoko, b"human_l\n")
+            while True:
+                if x.empty():
+                    break
+                a = x.get()
+                print(f"いらないやつ→→→→→→{a}←←←←←")
             robot_write(tn_takashi, b"s\n")
+            time.sleep(0.5)
+            robot_write(tn_masaru, b"human_r\n")
+            time.sleep(0.5)
+            robot_write(tn_kiyoko, b"human_l\n")
             audio.talkend_event.clear()
 
 def robot_conv(args_voice:bool, names, voice_thread:threading, word, emo):
@@ -231,7 +238,7 @@ def mainloop():
     args = parser.parse_args()
     
     convend_flag = False
-    robots_number = 1
+    robots_number = 3
     if args.task == "shikata":
         robots_number = 1
 
@@ -243,7 +250,7 @@ def mainloop():
     wm_pause = 1.0
     wm_energy = 200
     wm_dynamic_energy = True
-    wm_hallucinate_threshold = 200
+    wm_hallucinate_threshold = 150
 
     # setup claude
     adapter = CommuClaudeChat()
@@ -501,7 +508,7 @@ if __name__ == "__main__":
                 mic.pause = 1.0
                 mic.energy = 200
                 mic.dynamic_energy = True
-                mic.hallucinate_threshold = 200
+                mic.hallucinate_threshold = 150
                 
                 window["PAUSE"].update(value=mic.pause)
                 window["PAUSE_IN"].update(value=mic.pause)

@@ -199,6 +199,7 @@ class CommuClaudeChat:
             system += f"最後に話した人以外は、ユーザーには話しかけず，{','.join(self.names)}のいずれかに話しかけてください．"
             system += "ユーザーに向けての質問は1度だけにしなさい"
             system += "直前の人の発言を補足してください"
+            system += "各人物の発言はできるだけ100字以内にしてください．"
         self.create_chat(user_message,system)
         # system += "ユーザーに向けて話すのではなく，グループ全体に話しかけなさい"
         

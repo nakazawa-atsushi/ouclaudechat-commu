@@ -48,6 +48,7 @@ class play_voicebox:
                 voicetype = self.name_conversion(name,namelist)
                 
                 delay_flag = False
+                
                 if not memory_voicetype:
                     memory_voicetype = voicetype
                 elif not memory_voicetype == voicetype: #話者が変わったらdelay_flagをTrueにする
@@ -65,8 +66,8 @@ class play_voicebox:
             voice_type = 11
             #2は四国メタン、11は玄野武宏
         elif name == namelist[2]:   #きよこ
-            voice_type = 46
-            # 小夜
+            voice_type = 9
+            # 小夜 46
             # 雨晴はう 10
         elif name == namelist[0]:   #たかこorたかし
             voice_type = 20
